@@ -1,0 +1,21 @@
+name: 'aws-credentials-action'
+description: 'Fetch and export AWS Credentials'
+inputs:
+  region:
+    description: 'AWS Region'
+    required: true
+    default: 'us-east-1'
+  duration_seconds:
+    description: 'Credentials duration in seconds'
+    required: true
+    default: '300'
+outputs:
+  access_key_id:
+    description: 'Returned AWS Access Key ID'
+  secret_access_key:
+    description: 'Returned AWS Secret Access Key'
+  session_token:
+    description: 'Returned AWS Session Token'
+runs:
+  using: 'node20'
+  main: 'index.js'
