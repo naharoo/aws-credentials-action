@@ -1,17 +1,13 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
-const {STSClient, GetSessionTokenCommand} = require("@aws-sdk/client-sts");
+const {fromInstanceMetadata} = require("@aws-sdk/credential-providers");
 
 async function run() {
-    const region = core.getInput('region');
-    let durationSeconds = Number(core.getInput("duration_seconds"));
+    const awsCredentialIdentity = await fromInstanceMetadata()();
 
-    const sts = new STSClient({region});
-    const sessionToken = await sts.send(new GetSessionTokenCommand({DurationSeconds: durationSeconds}));
-
-    core.setOutput('access_key_id', sessionToken.Credentials.AccessKeyId);
-    core.setOutput('secret_access_key', sessionToken.Credentials.SecretAccessKey);
-    core.setOutput('session_token', sessionToken.Credentials.SessionToken);
+    core.setOutput('access_key_id', awsCredentialIdentity.accessKeyId);
+    core.setOutput('secret_access_key', awsCredentialIdentity.secretAccessKey);
+    core.setOutput('session_token', awsCredentialIdentity.sessionToken);
 
     console.log('Successfully generated temporary AWS credentials');
 

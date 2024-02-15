@@ -2652,6 +2652,1788 @@ exports.uint32ArrayFrom = uint32ArrayFrom;
 
 /***/ }),
 
+/***/ 8661:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.resolveHttpAuthSchemeConfig = exports.defaultCognitoIdentityHttpAuthSchemeProvider = exports.defaultCognitoIdentityHttpAuthSchemeParametersProvider = void 0;
+const core_1 = __nccwpck_require__(9963);
+const util_middleware_1 = __nccwpck_require__(2390);
+const defaultCognitoIdentityHttpAuthSchemeParametersProvider = async (config, context, input) => {
+    return {
+        operation: (0, util_middleware_1.getSmithyContext)(context).operation,
+        region: (await (0, util_middleware_1.normalizeProvider)(config.region)()) ||
+            (() => {
+                throw new Error("expected `region` to be configured for `aws.auth#sigv4`");
+            })(),
+    };
+};
+exports.defaultCognitoIdentityHttpAuthSchemeParametersProvider = defaultCognitoIdentityHttpAuthSchemeParametersProvider;
+function createAwsAuthSigv4HttpAuthOption(authParameters) {
+    return {
+        schemeId: "aws.auth#sigv4",
+        signingProperties: {
+            name: "cognito-identity",
+            region: authParameters.region,
+        },
+        propertiesExtractor: (config, context) => ({
+            signingProperties: {
+                config,
+                context,
+            },
+        }),
+    };
+}
+function createSmithyApiNoAuthHttpAuthOption(authParameters) {
+    return {
+        schemeId: "smithy.api#noAuth",
+    };
+}
+const defaultCognitoIdentityHttpAuthSchemeProvider = (authParameters) => {
+    const options = [];
+    switch (authParameters.operation) {
+        case "GetCredentialsForIdentity": {
+            options.push(createSmithyApiNoAuthHttpAuthOption(authParameters));
+            break;
+        }
+        case "GetId": {
+            options.push(createSmithyApiNoAuthHttpAuthOption(authParameters));
+            break;
+        }
+        case "GetOpenIdToken": {
+            options.push(createSmithyApiNoAuthHttpAuthOption(authParameters));
+            break;
+        }
+        case "UnlinkIdentity": {
+            options.push(createSmithyApiNoAuthHttpAuthOption(authParameters));
+            break;
+        }
+        default: {
+            options.push(createAwsAuthSigv4HttpAuthOption(authParameters));
+        }
+    }
+    return options;
+};
+exports.defaultCognitoIdentityHttpAuthSchemeProvider = defaultCognitoIdentityHttpAuthSchemeProvider;
+const resolveHttpAuthSchemeConfig = (config) => {
+    const config_0 = (0, core_1.resolveAwsSdkSigV4Config)(config);
+    return {
+        ...config_0,
+    };
+};
+exports.resolveHttpAuthSchemeConfig = resolveHttpAuthSchemeConfig;
+
+
+/***/ }),
+
+/***/ 8554:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.defaultEndpointResolver = void 0;
+const util_endpoints_1 = __nccwpck_require__(5473);
+const ruleset_1 = __nccwpck_require__(6845);
+const defaultEndpointResolver = (endpointParams, context = {}) => {
+    return (0, util_endpoints_1.resolveEndpoint)(ruleset_1.ruleSet, {
+        endpointParams: endpointParams,
+        logger: context.logger,
+    });
+};
+exports.defaultEndpointResolver = defaultEndpointResolver;
+
+
+/***/ }),
+
+/***/ 6845:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ruleSet = void 0;
+const s = "required", t = "fn", u = "argv", v = "ref";
+const a = true, b = "isSet", c = "booleanEquals", d = "error", e = "endpoint", f = "tree", g = "PartitionResult", h = { [s]: false, "type": "String" }, i = { [s]: true, "default": false, "type": "Boolean" }, j = { [v]: "Endpoint" }, k = { [t]: c, [u]: [{ [v]: "UseFIPS" }, true] }, l = { [t]: c, [u]: [{ [v]: "UseDualStack" }, true] }, m = {}, n = { [t]: "getAttr", [u]: [{ [v]: g }, "supportsFIPS"] }, o = { [t]: c, [u]: [true, { [t]: "getAttr", [u]: [{ [v]: g }, "supportsDualStack"] }] }, p = [k], q = [l], r = [{ [v]: "Region" }];
+const _data = { version: "1.0", parameters: { Region: h, UseDualStack: i, UseFIPS: i, Endpoint: h }, rules: [{ conditions: [{ [t]: b, [u]: [j] }], rules: [{ conditions: p, error: "Invalid Configuration: FIPS and custom endpoint are not supported", type: d }, { conditions: q, error: "Invalid Configuration: Dualstack and custom endpoint are not supported", type: d }, { endpoint: { url: j, properties: m, headers: m }, type: e }], type: f }, { conditions: [{ [t]: b, [u]: r }], rules: [{ conditions: [{ [t]: "aws.partition", [u]: r, assign: g }], rules: [{ conditions: [k, l], rules: [{ conditions: [{ [t]: c, [u]: [a, n] }, o], rules: [{ endpoint: { url: "https://cognito-identity-fips.{Region}.{PartitionResult#dualStackDnsSuffix}", properties: m, headers: m }, type: e }], type: f }, { error: "FIPS and DualStack are enabled, but this partition does not support one or both", type: d }], type: f }, { conditions: p, rules: [{ conditions: [{ [t]: c, [u]: [n, a] }], rules: [{ endpoint: { url: "https://cognito-identity-fips.{Region}.{PartitionResult#dnsSuffix}", properties: m, headers: m }, type: e }], type: f }, { error: "FIPS is enabled but this partition does not support FIPS", type: d }], type: f }, { conditions: q, rules: [{ conditions: [o], rules: [{ endpoint: { url: "https://cognito-identity.{Region}.{PartitionResult#dualStackDnsSuffix}", properties: m, headers: m }, type: e }], type: f }, { error: "DualStack is enabled but this partition does not support DualStack", type: d }], type: f }, { endpoint: { url: "https://cognito-identity.{Region}.{PartitionResult#dnsSuffix}", properties: m, headers: m }, type: e }], type: f }], type: f }, { error: "Invalid Configuration: Missing Region", type: d }] };
+exports.ruleSet = _data;
+
+
+/***/ }),
+
+/***/ 5880:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// src/index.ts
+var src_exports = {};
+__export(src_exports, {
+  AmbiguousRoleResolutionType: () => AmbiguousRoleResolutionType,
+  CognitoIdentity: () => CognitoIdentity,
+  CognitoIdentityClient: () => CognitoIdentityClient,
+  CognitoIdentityServiceException: () => CognitoIdentityServiceException,
+  ConcurrentModificationException: () => ConcurrentModificationException,
+  CreateIdentityPoolCommand: () => CreateIdentityPoolCommand,
+  DeleteIdentitiesCommand: () => DeleteIdentitiesCommand,
+  DeleteIdentityPoolCommand: () => DeleteIdentityPoolCommand,
+  DescribeIdentityCommand: () => DescribeIdentityCommand,
+  DescribeIdentityPoolCommand: () => DescribeIdentityPoolCommand,
+  DeveloperUserAlreadyRegisteredException: () => DeveloperUserAlreadyRegisteredException,
+  ErrorCode: () => ErrorCode,
+  ExternalServiceException: () => ExternalServiceException,
+  GetCredentialsForIdentityCommand: () => GetCredentialsForIdentityCommand,
+  GetIdCommand: () => GetIdCommand,
+  GetIdentityPoolRolesCommand: () => GetIdentityPoolRolesCommand,
+  GetOpenIdTokenCommand: () => GetOpenIdTokenCommand,
+  GetOpenIdTokenForDeveloperIdentityCommand: () => GetOpenIdTokenForDeveloperIdentityCommand,
+  GetPrincipalTagAttributeMapCommand: () => GetPrincipalTagAttributeMapCommand,
+  InternalErrorException: () => InternalErrorException,
+  InvalidIdentityPoolConfigurationException: () => InvalidIdentityPoolConfigurationException,
+  InvalidParameterException: () => InvalidParameterException,
+  LimitExceededException: () => LimitExceededException,
+  ListIdentitiesCommand: () => ListIdentitiesCommand,
+  ListIdentityPoolsCommand: () => ListIdentityPoolsCommand,
+  ListTagsForResourceCommand: () => ListTagsForResourceCommand,
+  LookupDeveloperIdentityCommand: () => LookupDeveloperIdentityCommand,
+  MappingRuleMatchType: () => MappingRuleMatchType,
+  MergeDeveloperIdentitiesCommand: () => MergeDeveloperIdentitiesCommand,
+  NotAuthorizedException: () => NotAuthorizedException,
+  ResourceConflictException: () => ResourceConflictException,
+  ResourceNotFoundException: () => ResourceNotFoundException,
+  RoleMappingType: () => RoleMappingType,
+  SetIdentityPoolRolesCommand: () => SetIdentityPoolRolesCommand,
+  SetPrincipalTagAttributeMapCommand: () => SetPrincipalTagAttributeMapCommand,
+  TagResourceCommand: () => TagResourceCommand,
+  TooManyRequestsException: () => TooManyRequestsException,
+  UnlinkDeveloperIdentityCommand: () => UnlinkDeveloperIdentityCommand,
+  UnlinkIdentityCommand: () => UnlinkIdentityCommand,
+  UntagResourceCommand: () => UntagResourceCommand,
+  UpdateIdentityPoolCommand: () => UpdateIdentityPoolCommand,
+  __Client: () => import_smithy_client.Client,
+  paginateListIdentityPools: () => paginateListIdentityPools
+});
+module.exports = __toCommonJS(src_exports);
+
+// src/CognitoIdentityClient.ts
+var import_middleware_host_header = __nccwpck_require__(2545);
+var import_middleware_logger = __nccwpck_require__(14);
+var import_middleware_recursion_detection = __nccwpck_require__(5525);
+var import_middleware_user_agent = __nccwpck_require__(4688);
+var import_config_resolver = __nccwpck_require__(3098);
+var import_core = __nccwpck_require__(5829);
+var import_middleware_content_length = __nccwpck_require__(2800);
+var import_middleware_endpoint = __nccwpck_require__(2918);
+var import_middleware_retry = __nccwpck_require__(6039);
+
+var import_httpAuthSchemeProvider = __nccwpck_require__(8661);
+
+// src/endpoint/EndpointParameters.ts
+var resolveClientEndpointParameters = /* @__PURE__ */ __name((options) => {
+  return {
+    ...options,
+    useDualstackEndpoint: options.useDualstackEndpoint ?? false,
+    useFipsEndpoint: options.useFipsEndpoint ?? false,
+    defaultSigningName: "cognito-identity"
+  };
+}, "resolveClientEndpointParameters");
+var commonParams = {
+  UseFIPS: { type: "builtInParams", name: "useFipsEndpoint" },
+  Endpoint: { type: "builtInParams", name: "endpoint" },
+  Region: { type: "builtInParams", name: "region" },
+  UseDualStack: { type: "builtInParams", name: "useDualstackEndpoint" }
+};
+
+// src/CognitoIdentityClient.ts
+var import_runtimeConfig = __nccwpck_require__(6042);
+
+// src/runtimeExtensions.ts
+var import_region_config_resolver = __nccwpck_require__(8156);
+var import_protocol_http = __nccwpck_require__(4418);
+var import_smithy_client = __nccwpck_require__(3570);
+
+// src/auth/httpAuthExtensionConfiguration.ts
+var getHttpAuthExtensionConfiguration = /* @__PURE__ */ __name((runtimeConfig) => {
+  const _httpAuthSchemes = runtimeConfig.httpAuthSchemes;
+  let _httpAuthSchemeProvider = runtimeConfig.httpAuthSchemeProvider;
+  let _credentials = runtimeConfig.credentials;
+  return {
+    setHttpAuthScheme(httpAuthScheme) {
+      const index = _httpAuthSchemes.findIndex((scheme) => scheme.schemeId === httpAuthScheme.schemeId);
+      if (index === -1) {
+        _httpAuthSchemes.push(httpAuthScheme);
+      } else {
+        _httpAuthSchemes.splice(index, 1, httpAuthScheme);
+      }
+    },
+    httpAuthSchemes() {
+      return _httpAuthSchemes;
+    },
+    setHttpAuthSchemeProvider(httpAuthSchemeProvider) {
+      _httpAuthSchemeProvider = httpAuthSchemeProvider;
+    },
+    httpAuthSchemeProvider() {
+      return _httpAuthSchemeProvider;
+    },
+    setCredentials(credentials) {
+      _credentials = credentials;
+    },
+    credentials() {
+      return _credentials;
+    }
+  };
+}, "getHttpAuthExtensionConfiguration");
+var resolveHttpAuthRuntimeConfig = /* @__PURE__ */ __name((config) => {
+  return {
+    httpAuthSchemes: config.httpAuthSchemes(),
+    httpAuthSchemeProvider: config.httpAuthSchemeProvider(),
+    credentials: config.credentials()
+  };
+}, "resolveHttpAuthRuntimeConfig");
+
+// src/runtimeExtensions.ts
+var asPartial = /* @__PURE__ */ __name((t) => t, "asPartial");
+var resolveRuntimeExtensions = /* @__PURE__ */ __name((runtimeConfig, extensions) => {
+  const extensionConfiguration = {
+    ...asPartial((0, import_region_config_resolver.getAwsRegionExtensionConfiguration)(runtimeConfig)),
+    ...asPartial((0, import_smithy_client.getDefaultExtensionConfiguration)(runtimeConfig)),
+    ...asPartial((0, import_protocol_http.getHttpHandlerExtensionConfiguration)(runtimeConfig)),
+    ...asPartial(getHttpAuthExtensionConfiguration(runtimeConfig))
+  };
+  extensions.forEach((extension) => extension.configure(extensionConfiguration));
+  return {
+    ...runtimeConfig,
+    ...(0, import_region_config_resolver.resolveAwsRegionExtensionConfiguration)(extensionConfiguration),
+    ...(0, import_smithy_client.resolveDefaultRuntimeConfig)(extensionConfiguration),
+    ...(0, import_protocol_http.resolveHttpHandlerRuntimeConfig)(extensionConfiguration),
+    ...resolveHttpAuthRuntimeConfig(extensionConfiguration)
+  };
+}, "resolveRuntimeExtensions");
+
+// src/CognitoIdentityClient.ts
+var _CognitoIdentityClient = class _CognitoIdentityClient extends import_smithy_client.Client {
+  constructor(...[configuration]) {
+    const _config_0 = (0, import_runtimeConfig.getRuntimeConfig)(configuration || {});
+    const _config_1 = resolveClientEndpointParameters(_config_0);
+    const _config_2 = (0, import_config_resolver.resolveRegionConfig)(_config_1);
+    const _config_3 = (0, import_middleware_endpoint.resolveEndpointConfig)(_config_2);
+    const _config_4 = (0, import_middleware_retry.resolveRetryConfig)(_config_3);
+    const _config_5 = (0, import_middleware_host_header.resolveHostHeaderConfig)(_config_4);
+    const _config_6 = (0, import_middleware_user_agent.resolveUserAgentConfig)(_config_5);
+    const _config_7 = (0, import_httpAuthSchemeProvider.resolveHttpAuthSchemeConfig)(_config_6);
+    const _config_8 = resolveRuntimeExtensions(_config_7, (configuration == null ? void 0 : configuration.extensions) || []);
+    super(_config_8);
+    this.config = _config_8;
+    this.middlewareStack.use((0, import_middleware_retry.getRetryPlugin)(this.config));
+    this.middlewareStack.use((0, import_middleware_content_length.getContentLengthPlugin)(this.config));
+    this.middlewareStack.use((0, import_middleware_host_header.getHostHeaderPlugin)(this.config));
+    this.middlewareStack.use((0, import_middleware_logger.getLoggerPlugin)(this.config));
+    this.middlewareStack.use((0, import_middleware_recursion_detection.getRecursionDetectionPlugin)(this.config));
+    this.middlewareStack.use((0, import_middleware_user_agent.getUserAgentPlugin)(this.config));
+    this.middlewareStack.use(
+      (0, import_core.getHttpAuthSchemeEndpointRuleSetPlugin)(this.config, {
+        httpAuthSchemeParametersProvider: this.getDefaultHttpAuthSchemeParametersProvider(),
+        identityProviderConfigProvider: this.getIdentityProviderConfigProvider()
+      })
+    );
+    this.middlewareStack.use((0, import_core.getHttpSigningPlugin)(this.config));
+  }
+  /**
+   * Destroy underlying resources, like sockets. It's usually not necessary to do this.
+   * However in Node.js, it's best to explicitly shut down the client's agent when it is no longer needed.
+   * Otherwise, sockets might stay open for quite a long time before the server terminates them.
+   */
+  destroy() {
+    super.destroy();
+  }
+  getDefaultHttpAuthSchemeParametersProvider() {
+    return import_httpAuthSchemeProvider.defaultCognitoIdentityHttpAuthSchemeParametersProvider;
+  }
+  getIdentityProviderConfigProvider() {
+    return async (config) => new import_core.DefaultIdentityProviderConfig({
+      "aws.auth#sigv4": config.credentials
+    });
+  }
+};
+__name(_CognitoIdentityClient, "CognitoIdentityClient");
+var CognitoIdentityClient = _CognitoIdentityClient;
+
+// src/CognitoIdentity.ts
+
+
+// src/commands/CreateIdentityPoolCommand.ts
+
+var import_middleware_serde = __nccwpck_require__(1238);
+
+var import_types = __nccwpck_require__(5756);
+
+// src/protocols/Aws_json1_1.ts
+
+
+
+// src/models/CognitoIdentityServiceException.ts
+
+var _CognitoIdentityServiceException = class _CognitoIdentityServiceException extends import_smithy_client.ServiceException {
+  /**
+   * @internal
+   */
+  constructor(options) {
+    super(options);
+    Object.setPrototypeOf(this, _CognitoIdentityServiceException.prototype);
+  }
+};
+__name(_CognitoIdentityServiceException, "CognitoIdentityServiceException");
+var CognitoIdentityServiceException = _CognitoIdentityServiceException;
+
+// src/models/models_0.ts
+var AmbiguousRoleResolutionType = {
+  AUTHENTICATED_ROLE: "AuthenticatedRole",
+  DENY: "Deny"
+};
+var _InternalErrorException = class _InternalErrorException extends CognitoIdentityServiceException {
+  /**
+   * @internal
+   */
+  constructor(opts) {
+    super({
+      name: "InternalErrorException",
+      $fault: "server",
+      ...opts
+    });
+    this.name = "InternalErrorException";
+    this.$fault = "server";
+    Object.setPrototypeOf(this, _InternalErrorException.prototype);
+  }
+};
+__name(_InternalErrorException, "InternalErrorException");
+var InternalErrorException = _InternalErrorException;
+var _InvalidParameterException = class _InvalidParameterException extends CognitoIdentityServiceException {
+  /**
+   * @internal
+   */
+  constructor(opts) {
+    super({
+      name: "InvalidParameterException",
+      $fault: "client",
+      ...opts
+    });
+    this.name = "InvalidParameterException";
+    this.$fault = "client";
+    Object.setPrototypeOf(this, _InvalidParameterException.prototype);
+  }
+};
+__name(_InvalidParameterException, "InvalidParameterException");
+var InvalidParameterException = _InvalidParameterException;
+var _LimitExceededException = class _LimitExceededException extends CognitoIdentityServiceException {
+  /**
+   * @internal
+   */
+  constructor(opts) {
+    super({
+      name: "LimitExceededException",
+      $fault: "client",
+      ...opts
+    });
+    this.name = "LimitExceededException";
+    this.$fault = "client";
+    Object.setPrototypeOf(this, _LimitExceededException.prototype);
+  }
+};
+__name(_LimitExceededException, "LimitExceededException");
+var LimitExceededException = _LimitExceededException;
+var _NotAuthorizedException = class _NotAuthorizedException extends CognitoIdentityServiceException {
+  /**
+   * @internal
+   */
+  constructor(opts) {
+    super({
+      name: "NotAuthorizedException",
+      $fault: "client",
+      ...opts
+    });
+    this.name = "NotAuthorizedException";
+    this.$fault = "client";
+    Object.setPrototypeOf(this, _NotAuthorizedException.prototype);
+  }
+};
+__name(_NotAuthorizedException, "NotAuthorizedException");
+var NotAuthorizedException = _NotAuthorizedException;
+var _ResourceConflictException = class _ResourceConflictException extends CognitoIdentityServiceException {
+  /**
+   * @internal
+   */
+  constructor(opts) {
+    super({
+      name: "ResourceConflictException",
+      $fault: "client",
+      ...opts
+    });
+    this.name = "ResourceConflictException";
+    this.$fault = "client";
+    Object.setPrototypeOf(this, _ResourceConflictException.prototype);
+  }
+};
+__name(_ResourceConflictException, "ResourceConflictException");
+var ResourceConflictException = _ResourceConflictException;
+var _TooManyRequestsException = class _TooManyRequestsException extends CognitoIdentityServiceException {
+  /**
+   * @internal
+   */
+  constructor(opts) {
+    super({
+      name: "TooManyRequestsException",
+      $fault: "client",
+      ...opts
+    });
+    this.name = "TooManyRequestsException";
+    this.$fault = "client";
+    Object.setPrototypeOf(this, _TooManyRequestsException.prototype);
+  }
+};
+__name(_TooManyRequestsException, "TooManyRequestsException");
+var TooManyRequestsException = _TooManyRequestsException;
+var ErrorCode = {
+  ACCESS_DENIED: "AccessDenied",
+  INTERNAL_SERVER_ERROR: "InternalServerError"
+};
+var _ResourceNotFoundException = class _ResourceNotFoundException extends CognitoIdentityServiceException {
+  /**
+   * @internal
+   */
+  constructor(opts) {
+    super({
+      name: "ResourceNotFoundException",
+      $fault: "client",
+      ...opts
+    });
+    this.name = "ResourceNotFoundException";
+    this.$fault = "client";
+    Object.setPrototypeOf(this, _ResourceNotFoundException.prototype);
+  }
+};
+__name(_ResourceNotFoundException, "ResourceNotFoundException");
+var ResourceNotFoundException = _ResourceNotFoundException;
+var _ExternalServiceException = class _ExternalServiceException extends CognitoIdentityServiceException {
+  /**
+   * @internal
+   */
+  constructor(opts) {
+    super({
+      name: "ExternalServiceException",
+      $fault: "client",
+      ...opts
+    });
+    this.name = "ExternalServiceException";
+    this.$fault = "client";
+    Object.setPrototypeOf(this, _ExternalServiceException.prototype);
+  }
+};
+__name(_ExternalServiceException, "ExternalServiceException");
+var ExternalServiceException = _ExternalServiceException;
+var _InvalidIdentityPoolConfigurationException = class _InvalidIdentityPoolConfigurationException extends CognitoIdentityServiceException {
+  /**
+   * @internal
+   */
+  constructor(opts) {
+    super({
+      name: "InvalidIdentityPoolConfigurationException",
+      $fault: "client",
+      ...opts
+    });
+    this.name = "InvalidIdentityPoolConfigurationException";
+    this.$fault = "client";
+    Object.setPrototypeOf(this, _InvalidIdentityPoolConfigurationException.prototype);
+  }
+};
+__name(_InvalidIdentityPoolConfigurationException, "InvalidIdentityPoolConfigurationException");
+var InvalidIdentityPoolConfigurationException = _InvalidIdentityPoolConfigurationException;
+var MappingRuleMatchType = {
+  CONTAINS: "Contains",
+  EQUALS: "Equals",
+  NOT_EQUAL: "NotEqual",
+  STARTS_WITH: "StartsWith"
+};
+var RoleMappingType = {
+  RULES: "Rules",
+  TOKEN: "Token"
+};
+var _DeveloperUserAlreadyRegisteredException = class _DeveloperUserAlreadyRegisteredException extends CognitoIdentityServiceException {
+  /**
+   * @internal
+   */
+  constructor(opts) {
+    super({
+      name: "DeveloperUserAlreadyRegisteredException",
+      $fault: "client",
+      ...opts
+    });
+    this.name = "DeveloperUserAlreadyRegisteredException";
+    this.$fault = "client";
+    Object.setPrototypeOf(this, _DeveloperUserAlreadyRegisteredException.prototype);
+  }
+};
+__name(_DeveloperUserAlreadyRegisteredException, "DeveloperUserAlreadyRegisteredException");
+var DeveloperUserAlreadyRegisteredException = _DeveloperUserAlreadyRegisteredException;
+var _ConcurrentModificationException = class _ConcurrentModificationException extends CognitoIdentityServiceException {
+  /**
+   * @internal
+   */
+  constructor(opts) {
+    super({
+      name: "ConcurrentModificationException",
+      $fault: "client",
+      ...opts
+    });
+    this.name = "ConcurrentModificationException";
+    this.$fault = "client";
+    Object.setPrototypeOf(this, _ConcurrentModificationException.prototype);
+  }
+};
+__name(_ConcurrentModificationException, "ConcurrentModificationException");
+var ConcurrentModificationException = _ConcurrentModificationException;
+
+// src/protocols/Aws_json1_1.ts
+var se_CreateIdentityPoolCommand = /* @__PURE__ */ __name(async (input, context) => {
+  const headers = sharedHeaders("CreateIdentityPool");
+  let body;
+  body = JSON.stringify((0, import_smithy_client._json)(input));
+  return buildHttpRpcRequest(context, headers, "/", void 0, body);
+}, "se_CreateIdentityPoolCommand");
+var se_DeleteIdentitiesCommand = /* @__PURE__ */ __name(async (input, context) => {
+  const headers = sharedHeaders("DeleteIdentities");
+  let body;
+  body = JSON.stringify((0, import_smithy_client._json)(input));
+  return buildHttpRpcRequest(context, headers, "/", void 0, body);
+}, "se_DeleteIdentitiesCommand");
+var se_DeleteIdentityPoolCommand = /* @__PURE__ */ __name(async (input, context) => {
+  const headers = sharedHeaders("DeleteIdentityPool");
+  let body;
+  body = JSON.stringify((0, import_smithy_client._json)(input));
+  return buildHttpRpcRequest(context, headers, "/", void 0, body);
+}, "se_DeleteIdentityPoolCommand");
+var se_DescribeIdentityCommand = /* @__PURE__ */ __name(async (input, context) => {
+  const headers = sharedHeaders("DescribeIdentity");
+  let body;
+  body = JSON.stringify((0, import_smithy_client._json)(input));
+  return buildHttpRpcRequest(context, headers, "/", void 0, body);
+}, "se_DescribeIdentityCommand");
+var se_DescribeIdentityPoolCommand = /* @__PURE__ */ __name(async (input, context) => {
+  const headers = sharedHeaders("DescribeIdentityPool");
+  let body;
+  body = JSON.stringify((0, import_smithy_client._json)(input));
+  return buildHttpRpcRequest(context, headers, "/", void 0, body);
+}, "se_DescribeIdentityPoolCommand");
+var se_GetCredentialsForIdentityCommand = /* @__PURE__ */ __name(async (input, context) => {
+  const headers = sharedHeaders("GetCredentialsForIdentity");
+  let body;
+  body = JSON.stringify((0, import_smithy_client._json)(input));
+  return buildHttpRpcRequest(context, headers, "/", void 0, body);
+}, "se_GetCredentialsForIdentityCommand");
+var se_GetIdCommand = /* @__PURE__ */ __name(async (input, context) => {
+  const headers = sharedHeaders("GetId");
+  let body;
+  body = JSON.stringify((0, import_smithy_client._json)(input));
+  return buildHttpRpcRequest(context, headers, "/", void 0, body);
+}, "se_GetIdCommand");
+var se_GetIdentityPoolRolesCommand = /* @__PURE__ */ __name(async (input, context) => {
+  const headers = sharedHeaders("GetIdentityPoolRoles");
+  let body;
+  body = JSON.stringify((0, import_smithy_client._json)(input));
+  return buildHttpRpcRequest(context, headers, "/", void 0, body);
+}, "se_GetIdentityPoolRolesCommand");
+var se_GetOpenIdTokenCommand = /* @__PURE__ */ __name(async (input, context) => {
+  const headers = sharedHeaders("GetOpenIdToken");
+  let body;
+  body = JSON.stringify((0, import_smithy_client._json)(input));
+  return buildHttpRpcRequest(context, headers, "/", void 0, body);
+}, "se_GetOpenIdTokenCommand");
+var se_GetOpenIdTokenForDeveloperIdentityCommand = /* @__PURE__ */ __name(async (input, context) => {
+  const headers = sharedHeaders("GetOpenIdTokenForDeveloperIdentity");
+  let body;
+  body = JSON.stringify((0, import_smithy_client._json)(input));
+  return buildHttpRpcRequest(context, headers, "/", void 0, body);
+}, "se_GetOpenIdTokenForDeveloperIdentityCommand");
+var se_GetPrincipalTagAttributeMapCommand = /* @__PURE__ */ __name(async (input, context) => {
+  const headers = sharedHeaders("GetPrincipalTagAttributeMap");
+  let body;
+  body = JSON.stringify((0, import_smithy_client._json)(input));
+  return buildHttpRpcRequest(context, headers, "/", void 0, body);
+}, "se_GetPrincipalTagAttributeMapCommand");
+var se_ListIdentitiesCommand = /* @__PURE__ */ __name(async (input, context) => {
+  const headers = sharedHeaders("ListIdentities");
+  let body;
+  body = JSON.stringify((0, import_smithy_client._json)(input));
+  return buildHttpRpcRequest(context, headers, "/", void 0, body);
+}, "se_ListIdentitiesCommand");
+var se_ListIdentityPoolsCommand = /* @__PURE__ */ __name(async (input, context) => {
+  const headers = sharedHeaders("ListIdentityPools");
+  let body;
+  body = JSON.stringify((0, import_smithy_client._json)(input));
+  return buildHttpRpcRequest(context, headers, "/", void 0, body);
+}, "se_ListIdentityPoolsCommand");
+var se_ListTagsForResourceCommand = /* @__PURE__ */ __name(async (input, context) => {
+  const headers = sharedHeaders("ListTagsForResource");
+  let body;
+  body = JSON.stringify((0, import_smithy_client._json)(input));
+  return buildHttpRpcRequest(context, headers, "/", void 0, body);
+}, "se_ListTagsForResourceCommand");
+var se_LookupDeveloperIdentityCommand = /* @__PURE__ */ __name(async (input, context) => {
+  const headers = sharedHeaders("LookupDeveloperIdentity");
+  let body;
+  body = JSON.stringify((0, import_smithy_client._json)(input));
+  return buildHttpRpcRequest(context, headers, "/", void 0, body);
+}, "se_LookupDeveloperIdentityCommand");
+var se_MergeDeveloperIdentitiesCommand = /* @__PURE__ */ __name(async (input, context) => {
+  const headers = sharedHeaders("MergeDeveloperIdentities");
+  let body;
+  body = JSON.stringify((0, import_smithy_client._json)(input));
+  return buildHttpRpcRequest(context, headers, "/", void 0, body);
+}, "se_MergeDeveloperIdentitiesCommand");
+var se_SetIdentityPoolRolesCommand = /* @__PURE__ */ __name(async (input, context) => {
+  const headers = sharedHeaders("SetIdentityPoolRoles");
+  let body;
+  body = JSON.stringify((0, import_smithy_client._json)(input));
+  return buildHttpRpcRequest(context, headers, "/", void 0, body);
+}, "se_SetIdentityPoolRolesCommand");
+var se_SetPrincipalTagAttributeMapCommand = /* @__PURE__ */ __name(async (input, context) => {
+  const headers = sharedHeaders("SetPrincipalTagAttributeMap");
+  let body;
+  body = JSON.stringify((0, import_smithy_client._json)(input));
+  return buildHttpRpcRequest(context, headers, "/", void 0, body);
+}, "se_SetPrincipalTagAttributeMapCommand");
+var se_TagResourceCommand = /* @__PURE__ */ __name(async (input, context) => {
+  const headers = sharedHeaders("TagResource");
+  let body;
+  body = JSON.stringify((0, import_smithy_client._json)(input));
+  return buildHttpRpcRequest(context, headers, "/", void 0, body);
+}, "se_TagResourceCommand");
+var se_UnlinkDeveloperIdentityCommand = /* @__PURE__ */ __name(async (input, context) => {
+  const headers = sharedHeaders("UnlinkDeveloperIdentity");
+  let body;
+  body = JSON.stringify((0, import_smithy_client._json)(input));
+  return buildHttpRpcRequest(context, headers, "/", void 0, body);
+}, "se_UnlinkDeveloperIdentityCommand");
+var se_UnlinkIdentityCommand = /* @__PURE__ */ __name(async (input, context) => {
+  const headers = sharedHeaders("UnlinkIdentity");
+  let body;
+  body = JSON.stringify((0, import_smithy_client._json)(input));
+  return buildHttpRpcRequest(context, headers, "/", void 0, body);
+}, "se_UnlinkIdentityCommand");
+var se_UntagResourceCommand = /* @__PURE__ */ __name(async (input, context) => {
+  const headers = sharedHeaders("UntagResource");
+  let body;
+  body = JSON.stringify((0, import_smithy_client._json)(input));
+  return buildHttpRpcRequest(context, headers, "/", void 0, body);
+}, "se_UntagResourceCommand");
+var se_UpdateIdentityPoolCommand = /* @__PURE__ */ __name(async (input, context) => {
+  const headers = sharedHeaders("UpdateIdentityPool");
+  let body;
+  body = JSON.stringify((0, import_smithy_client._json)(input));
+  return buildHttpRpcRequest(context, headers, "/", void 0, body);
+}, "se_UpdateIdentityPoolCommand");
+var de_CreateIdentityPoolCommand = /* @__PURE__ */ __name(async (output, context) => {
+  if (output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const data = await parseBody(output.body, context);
+  let contents = {};
+  contents = (0, import_smithy_client._json)(data);
+  const response = {
+    $metadata: deserializeMetadata(output),
+    ...contents
+  };
+  return response;
+}, "de_CreateIdentityPoolCommand");
+var de_DeleteIdentitiesCommand = /* @__PURE__ */ __name(async (output, context) => {
+  if (output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const data = await parseBody(output.body, context);
+  let contents = {};
+  contents = (0, import_smithy_client._json)(data);
+  const response = {
+    $metadata: deserializeMetadata(output),
+    ...contents
+  };
+  return response;
+}, "de_DeleteIdentitiesCommand");
+var de_DeleteIdentityPoolCommand = /* @__PURE__ */ __name(async (output, context) => {
+  if (output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  await (0, import_smithy_client.collectBody)(output.body, context);
+  const response = {
+    $metadata: deserializeMetadata(output)
+  };
+  return response;
+}, "de_DeleteIdentityPoolCommand");
+var de_DescribeIdentityCommand = /* @__PURE__ */ __name(async (output, context) => {
+  if (output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const data = await parseBody(output.body, context);
+  let contents = {};
+  contents = de_IdentityDescription(data, context);
+  const response = {
+    $metadata: deserializeMetadata(output),
+    ...contents
+  };
+  return response;
+}, "de_DescribeIdentityCommand");
+var de_DescribeIdentityPoolCommand = /* @__PURE__ */ __name(async (output, context) => {
+  if (output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const data = await parseBody(output.body, context);
+  let contents = {};
+  contents = (0, import_smithy_client._json)(data);
+  const response = {
+    $metadata: deserializeMetadata(output),
+    ...contents
+  };
+  return response;
+}, "de_DescribeIdentityPoolCommand");
+var de_GetCredentialsForIdentityCommand = /* @__PURE__ */ __name(async (output, context) => {
+  if (output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const data = await parseBody(output.body, context);
+  let contents = {};
+  contents = de_GetCredentialsForIdentityResponse(data, context);
+  const response = {
+    $metadata: deserializeMetadata(output),
+    ...contents
+  };
+  return response;
+}, "de_GetCredentialsForIdentityCommand");
+var de_GetIdCommand = /* @__PURE__ */ __name(async (output, context) => {
+  if (output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const data = await parseBody(output.body, context);
+  let contents = {};
+  contents = (0, import_smithy_client._json)(data);
+  const response = {
+    $metadata: deserializeMetadata(output),
+    ...contents
+  };
+  return response;
+}, "de_GetIdCommand");
+var de_GetIdentityPoolRolesCommand = /* @__PURE__ */ __name(async (output, context) => {
+  if (output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const data = await parseBody(output.body, context);
+  let contents = {};
+  contents = (0, import_smithy_client._json)(data);
+  const response = {
+    $metadata: deserializeMetadata(output),
+    ...contents
+  };
+  return response;
+}, "de_GetIdentityPoolRolesCommand");
+var de_GetOpenIdTokenCommand = /* @__PURE__ */ __name(async (output, context) => {
+  if (output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const data = await parseBody(output.body, context);
+  let contents = {};
+  contents = (0, import_smithy_client._json)(data);
+  const response = {
+    $metadata: deserializeMetadata(output),
+    ...contents
+  };
+  return response;
+}, "de_GetOpenIdTokenCommand");
+var de_GetOpenIdTokenForDeveloperIdentityCommand = /* @__PURE__ */ __name(async (output, context) => {
+  if (output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const data = await parseBody(output.body, context);
+  let contents = {};
+  contents = (0, import_smithy_client._json)(data);
+  const response = {
+    $metadata: deserializeMetadata(output),
+    ...contents
+  };
+  return response;
+}, "de_GetOpenIdTokenForDeveloperIdentityCommand");
+var de_GetPrincipalTagAttributeMapCommand = /* @__PURE__ */ __name(async (output, context) => {
+  if (output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const data = await parseBody(output.body, context);
+  let contents = {};
+  contents = (0, import_smithy_client._json)(data);
+  const response = {
+    $metadata: deserializeMetadata(output),
+    ...contents
+  };
+  return response;
+}, "de_GetPrincipalTagAttributeMapCommand");
+var de_ListIdentitiesCommand = /* @__PURE__ */ __name(async (output, context) => {
+  if (output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const data = await parseBody(output.body, context);
+  let contents = {};
+  contents = de_ListIdentitiesResponse(data, context);
+  const response = {
+    $metadata: deserializeMetadata(output),
+    ...contents
+  };
+  return response;
+}, "de_ListIdentitiesCommand");
+var de_ListIdentityPoolsCommand = /* @__PURE__ */ __name(async (output, context) => {
+  if (output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const data = await parseBody(output.body, context);
+  let contents = {};
+  contents = (0, import_smithy_client._json)(data);
+  const response = {
+    $metadata: deserializeMetadata(output),
+    ...contents
+  };
+  return response;
+}, "de_ListIdentityPoolsCommand");
+var de_ListTagsForResourceCommand = /* @__PURE__ */ __name(async (output, context) => {
+  if (output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const data = await parseBody(output.body, context);
+  let contents = {};
+  contents = (0, import_smithy_client._json)(data);
+  const response = {
+    $metadata: deserializeMetadata(output),
+    ...contents
+  };
+  return response;
+}, "de_ListTagsForResourceCommand");
+var de_LookupDeveloperIdentityCommand = /* @__PURE__ */ __name(async (output, context) => {
+  if (output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const data = await parseBody(output.body, context);
+  let contents = {};
+  contents = (0, import_smithy_client._json)(data);
+  const response = {
+    $metadata: deserializeMetadata(output),
+    ...contents
+  };
+  return response;
+}, "de_LookupDeveloperIdentityCommand");
+var de_MergeDeveloperIdentitiesCommand = /* @__PURE__ */ __name(async (output, context) => {
+  if (output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const data = await parseBody(output.body, context);
+  let contents = {};
+  contents = (0, import_smithy_client._json)(data);
+  const response = {
+    $metadata: deserializeMetadata(output),
+    ...contents
+  };
+  return response;
+}, "de_MergeDeveloperIdentitiesCommand");
+var de_SetIdentityPoolRolesCommand = /* @__PURE__ */ __name(async (output, context) => {
+  if (output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  await (0, import_smithy_client.collectBody)(output.body, context);
+  const response = {
+    $metadata: deserializeMetadata(output)
+  };
+  return response;
+}, "de_SetIdentityPoolRolesCommand");
+var de_SetPrincipalTagAttributeMapCommand = /* @__PURE__ */ __name(async (output, context) => {
+  if (output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const data = await parseBody(output.body, context);
+  let contents = {};
+  contents = (0, import_smithy_client._json)(data);
+  const response = {
+    $metadata: deserializeMetadata(output),
+    ...contents
+  };
+  return response;
+}, "de_SetPrincipalTagAttributeMapCommand");
+var de_TagResourceCommand = /* @__PURE__ */ __name(async (output, context) => {
+  if (output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const data = await parseBody(output.body, context);
+  let contents = {};
+  contents = (0, import_smithy_client._json)(data);
+  const response = {
+    $metadata: deserializeMetadata(output),
+    ...contents
+  };
+  return response;
+}, "de_TagResourceCommand");
+var de_UnlinkDeveloperIdentityCommand = /* @__PURE__ */ __name(async (output, context) => {
+  if (output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  await (0, import_smithy_client.collectBody)(output.body, context);
+  const response = {
+    $metadata: deserializeMetadata(output)
+  };
+  return response;
+}, "de_UnlinkDeveloperIdentityCommand");
+var de_UnlinkIdentityCommand = /* @__PURE__ */ __name(async (output, context) => {
+  if (output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  await (0, import_smithy_client.collectBody)(output.body, context);
+  const response = {
+    $metadata: deserializeMetadata(output)
+  };
+  return response;
+}, "de_UnlinkIdentityCommand");
+var de_UntagResourceCommand = /* @__PURE__ */ __name(async (output, context) => {
+  if (output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const data = await parseBody(output.body, context);
+  let contents = {};
+  contents = (0, import_smithy_client._json)(data);
+  const response = {
+    $metadata: deserializeMetadata(output),
+    ...contents
+  };
+  return response;
+}, "de_UntagResourceCommand");
+var de_UpdateIdentityPoolCommand = /* @__PURE__ */ __name(async (output, context) => {
+  if (output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const data = await parseBody(output.body, context);
+  let contents = {};
+  contents = (0, import_smithy_client._json)(data);
+  const response = {
+    $metadata: deserializeMetadata(output),
+    ...contents
+  };
+  return response;
+}, "de_UpdateIdentityPoolCommand");
+var de_CommandError = /* @__PURE__ */ __name(async (output, context) => {
+  const parsedOutput = {
+    ...output,
+    body: await parseErrorBody(output.body, context)
+  };
+  const errorCode = loadRestJsonErrorCode(output, parsedOutput.body);
+  switch (errorCode) {
+    case "InternalErrorException":
+    case "com.amazonaws.cognitoidentity#InternalErrorException":
+      throw await de_InternalErrorExceptionRes(parsedOutput, context);
+    case "InvalidParameterException":
+    case "com.amazonaws.cognitoidentity#InvalidParameterException":
+      throw await de_InvalidParameterExceptionRes(parsedOutput, context);
+    case "LimitExceededException":
+    case "com.amazonaws.cognitoidentity#LimitExceededException":
+      throw await de_LimitExceededExceptionRes(parsedOutput, context);
+    case "NotAuthorizedException":
+    case "com.amazonaws.cognitoidentity#NotAuthorizedException":
+      throw await de_NotAuthorizedExceptionRes(parsedOutput, context);
+    case "ResourceConflictException":
+    case "com.amazonaws.cognitoidentity#ResourceConflictException":
+      throw await de_ResourceConflictExceptionRes(parsedOutput, context);
+    case "TooManyRequestsException":
+    case "com.amazonaws.cognitoidentity#TooManyRequestsException":
+      throw await de_TooManyRequestsExceptionRes(parsedOutput, context);
+    case "ResourceNotFoundException":
+    case "com.amazonaws.cognitoidentity#ResourceNotFoundException":
+      throw await de_ResourceNotFoundExceptionRes(parsedOutput, context);
+    case "ExternalServiceException":
+    case "com.amazonaws.cognitoidentity#ExternalServiceException":
+      throw await de_ExternalServiceExceptionRes(parsedOutput, context);
+    case "InvalidIdentityPoolConfigurationException":
+    case "com.amazonaws.cognitoidentity#InvalidIdentityPoolConfigurationException":
+      throw await de_InvalidIdentityPoolConfigurationExceptionRes(parsedOutput, context);
+    case "DeveloperUserAlreadyRegisteredException":
+    case "com.amazonaws.cognitoidentity#DeveloperUserAlreadyRegisteredException":
+      throw await de_DeveloperUserAlreadyRegisteredExceptionRes(parsedOutput, context);
+    case "ConcurrentModificationException":
+    case "com.amazonaws.cognitoidentity#ConcurrentModificationException":
+      throw await de_ConcurrentModificationExceptionRes(parsedOutput, context);
+    default:
+      const parsedBody = parsedOutput.body;
+      return throwDefaultError({
+        output,
+        parsedBody,
+        errorCode
+      });
+  }
+}, "de_CommandError");
+var de_ConcurrentModificationExceptionRes = /* @__PURE__ */ __name(async (parsedOutput, context) => {
+  const body = parsedOutput.body;
+  const deserialized = (0, import_smithy_client._json)(body);
+  const exception = new ConcurrentModificationException({
+    $metadata: deserializeMetadata(parsedOutput),
+    ...deserialized
+  });
+  return (0, import_smithy_client.decorateServiceException)(exception, body);
+}, "de_ConcurrentModificationExceptionRes");
+var de_DeveloperUserAlreadyRegisteredExceptionRes = /* @__PURE__ */ __name(async (parsedOutput, context) => {
+  const body = parsedOutput.body;
+  const deserialized = (0, import_smithy_client._json)(body);
+  const exception = new DeveloperUserAlreadyRegisteredException({
+    $metadata: deserializeMetadata(parsedOutput),
+    ...deserialized
+  });
+  return (0, import_smithy_client.decorateServiceException)(exception, body);
+}, "de_DeveloperUserAlreadyRegisteredExceptionRes");
+var de_ExternalServiceExceptionRes = /* @__PURE__ */ __name(async (parsedOutput, context) => {
+  const body = parsedOutput.body;
+  const deserialized = (0, import_smithy_client._json)(body);
+  const exception = new ExternalServiceException({
+    $metadata: deserializeMetadata(parsedOutput),
+    ...deserialized
+  });
+  return (0, import_smithy_client.decorateServiceException)(exception, body);
+}, "de_ExternalServiceExceptionRes");
+var de_InternalErrorExceptionRes = /* @__PURE__ */ __name(async (parsedOutput, context) => {
+  const body = parsedOutput.body;
+  const deserialized = (0, import_smithy_client._json)(body);
+  const exception = new InternalErrorException({
+    $metadata: deserializeMetadata(parsedOutput),
+    ...deserialized
+  });
+  return (0, import_smithy_client.decorateServiceException)(exception, body);
+}, "de_InternalErrorExceptionRes");
+var de_InvalidIdentityPoolConfigurationExceptionRes = /* @__PURE__ */ __name(async (parsedOutput, context) => {
+  const body = parsedOutput.body;
+  const deserialized = (0, import_smithy_client._json)(body);
+  const exception = new InvalidIdentityPoolConfigurationException({
+    $metadata: deserializeMetadata(parsedOutput),
+    ...deserialized
+  });
+  return (0, import_smithy_client.decorateServiceException)(exception, body);
+}, "de_InvalidIdentityPoolConfigurationExceptionRes");
+var de_InvalidParameterExceptionRes = /* @__PURE__ */ __name(async (parsedOutput, context) => {
+  const body = parsedOutput.body;
+  const deserialized = (0, import_smithy_client._json)(body);
+  const exception = new InvalidParameterException({
+    $metadata: deserializeMetadata(parsedOutput),
+    ...deserialized
+  });
+  return (0, import_smithy_client.decorateServiceException)(exception, body);
+}, "de_InvalidParameterExceptionRes");
+var de_LimitExceededExceptionRes = /* @__PURE__ */ __name(async (parsedOutput, context) => {
+  const body = parsedOutput.body;
+  const deserialized = (0, import_smithy_client._json)(body);
+  const exception = new LimitExceededException({
+    $metadata: deserializeMetadata(parsedOutput),
+    ...deserialized
+  });
+  return (0, import_smithy_client.decorateServiceException)(exception, body);
+}, "de_LimitExceededExceptionRes");
+var de_NotAuthorizedExceptionRes = /* @__PURE__ */ __name(async (parsedOutput, context) => {
+  const body = parsedOutput.body;
+  const deserialized = (0, import_smithy_client._json)(body);
+  const exception = new NotAuthorizedException({
+    $metadata: deserializeMetadata(parsedOutput),
+    ...deserialized
+  });
+  return (0, import_smithy_client.decorateServiceException)(exception, body);
+}, "de_NotAuthorizedExceptionRes");
+var de_ResourceConflictExceptionRes = /* @__PURE__ */ __name(async (parsedOutput, context) => {
+  const body = parsedOutput.body;
+  const deserialized = (0, import_smithy_client._json)(body);
+  const exception = new ResourceConflictException({
+    $metadata: deserializeMetadata(parsedOutput),
+    ...deserialized
+  });
+  return (0, import_smithy_client.decorateServiceException)(exception, body);
+}, "de_ResourceConflictExceptionRes");
+var de_ResourceNotFoundExceptionRes = /* @__PURE__ */ __name(async (parsedOutput, context) => {
+  const body = parsedOutput.body;
+  const deserialized = (0, import_smithy_client._json)(body);
+  const exception = new ResourceNotFoundException({
+    $metadata: deserializeMetadata(parsedOutput),
+    ...deserialized
+  });
+  return (0, import_smithy_client.decorateServiceException)(exception, body);
+}, "de_ResourceNotFoundExceptionRes");
+var de_TooManyRequestsExceptionRes = /* @__PURE__ */ __name(async (parsedOutput, context) => {
+  const body = parsedOutput.body;
+  const deserialized = (0, import_smithy_client._json)(body);
+  const exception = new TooManyRequestsException({
+    $metadata: deserializeMetadata(parsedOutput),
+    ...deserialized
+  });
+  return (0, import_smithy_client.decorateServiceException)(exception, body);
+}, "de_TooManyRequestsExceptionRes");
+var de_Credentials = /* @__PURE__ */ __name((output, context) => {
+  return (0, import_smithy_client.take)(output, {
+    AccessKeyId: import_smithy_client.expectString,
+    Expiration: (_) => (0, import_smithy_client.expectNonNull)((0, import_smithy_client.parseEpochTimestamp)((0, import_smithy_client.expectNumber)(_))),
+    SecretKey: import_smithy_client.expectString,
+    SessionToken: import_smithy_client.expectString
+  });
+}, "de_Credentials");
+var de_GetCredentialsForIdentityResponse = /* @__PURE__ */ __name((output, context) => {
+  return (0, import_smithy_client.take)(output, {
+    Credentials: (_) => de_Credentials(_, context),
+    IdentityId: import_smithy_client.expectString
+  });
+}, "de_GetCredentialsForIdentityResponse");
+var de_IdentitiesList = /* @__PURE__ */ __name((output, context) => {
+  const retVal = (output || []).filter((e) => e != null).map((entry) => {
+    return de_IdentityDescription(entry, context);
+  });
+  return retVal;
+}, "de_IdentitiesList");
+var de_IdentityDescription = /* @__PURE__ */ __name((output, context) => {
+  return (0, import_smithy_client.take)(output, {
+    CreationDate: (_) => (0, import_smithy_client.expectNonNull)((0, import_smithy_client.parseEpochTimestamp)((0, import_smithy_client.expectNumber)(_))),
+    IdentityId: import_smithy_client.expectString,
+    LastModifiedDate: (_) => (0, import_smithy_client.expectNonNull)((0, import_smithy_client.parseEpochTimestamp)((0, import_smithy_client.expectNumber)(_))),
+    Logins: import_smithy_client._json
+  });
+}, "de_IdentityDescription");
+var de_ListIdentitiesResponse = /* @__PURE__ */ __name((output, context) => {
+  return (0, import_smithy_client.take)(output, {
+    Identities: (_) => de_IdentitiesList(_, context),
+    IdentityPoolId: import_smithy_client.expectString,
+    NextToken: import_smithy_client.expectString
+  });
+}, "de_ListIdentitiesResponse");
+var deserializeMetadata = /* @__PURE__ */ __name((output) => ({
+  httpStatusCode: output.statusCode,
+  requestId: output.headers["x-amzn-requestid"] ?? output.headers["x-amzn-request-id"] ?? output.headers["x-amz-request-id"],
+  extendedRequestId: output.headers["x-amz-id-2"],
+  cfId: output.headers["x-amz-cf-id"]
+}), "deserializeMetadata");
+var collectBodyString = /* @__PURE__ */ __name((streamBody, context) => (0, import_smithy_client.collectBody)(streamBody, context).then((body) => context.utf8Encoder(body)), "collectBodyString");
+var throwDefaultError = (0, import_smithy_client.withBaseException)(CognitoIdentityServiceException);
+var buildHttpRpcRequest = /* @__PURE__ */ __name(async (context, headers, path, resolvedHostname, body) => {
+  const { hostname, protocol = "https", port, path: basePath } = await context.endpoint();
+  const contents = {
+    protocol,
+    hostname,
+    port,
+    method: "POST",
+    path: basePath.endsWith("/") ? basePath.slice(0, -1) + path : basePath + path,
+    headers
+  };
+  if (resolvedHostname !== void 0) {
+    contents.hostname = resolvedHostname;
+  }
+  if (body !== void 0) {
+    contents.body = body;
+  }
+  return new import_protocol_http.HttpRequest(contents);
+}, "buildHttpRpcRequest");
+function sharedHeaders(operation) {
+  return {
+    "content-type": "application/x-amz-json-1.1",
+    "x-amz-target": `AWSCognitoIdentityService.${operation}`
+  };
+}
+__name(sharedHeaders, "sharedHeaders");
+var parseBody = /* @__PURE__ */ __name((streamBody, context) => collectBodyString(streamBody, context).then((encoded) => {
+  if (encoded.length) {
+    return JSON.parse(encoded);
+  }
+  return {};
+}), "parseBody");
+var parseErrorBody = /* @__PURE__ */ __name(async (errorBody, context) => {
+  const value = await parseBody(errorBody, context);
+  value.message = value.message ?? value.Message;
+  return value;
+}, "parseErrorBody");
+var loadRestJsonErrorCode = /* @__PURE__ */ __name((output, data) => {
+  const findKey = /* @__PURE__ */ __name((object, key) => Object.keys(object).find((k) => k.toLowerCase() === key.toLowerCase()), "findKey");
+  const sanitizeErrorCode = /* @__PURE__ */ __name((rawValue) => {
+    let cleanValue = rawValue;
+    if (typeof cleanValue === "number") {
+      cleanValue = cleanValue.toString();
+    }
+    if (cleanValue.indexOf(",") >= 0) {
+      cleanValue = cleanValue.split(",")[0];
+    }
+    if (cleanValue.indexOf(":") >= 0) {
+      cleanValue = cleanValue.split(":")[0];
+    }
+    if (cleanValue.indexOf("#") >= 0) {
+      cleanValue = cleanValue.split("#")[1];
+    }
+    return cleanValue;
+  }, "sanitizeErrorCode");
+  const headerKey = findKey(output.headers, "x-amzn-errortype");
+  if (headerKey !== void 0) {
+    return sanitizeErrorCode(output.headers[headerKey]);
+  }
+  if (data.code !== void 0) {
+    return sanitizeErrorCode(data.code);
+  }
+  if (data["__type"] !== void 0) {
+    return sanitizeErrorCode(data["__type"]);
+  }
+}, "loadRestJsonErrorCode");
+
+// src/commands/CreateIdentityPoolCommand.ts
+var _CreateIdentityPoolCommand = class _CreateIdentityPoolCommand extends import_smithy_client.Command.classBuilder().ep({
+  ...commonParams
+}).m(function(Command, cs, config, o) {
+  return [
+    (0, import_middleware_serde.getSerdePlugin)(config, this.serialize, this.deserialize),
+    (0, import_middleware_endpoint.getEndpointPlugin)(config, Command.getEndpointParameterInstructions())
+  ];
+}).s("AWSCognitoIdentityService", "CreateIdentityPool", {}).n("CognitoIdentityClient", "CreateIdentityPoolCommand").f(void 0, void 0).ser(se_CreateIdentityPoolCommand).de(de_CreateIdentityPoolCommand).build() {
+};
+__name(_CreateIdentityPoolCommand, "CreateIdentityPoolCommand");
+var CreateIdentityPoolCommand = _CreateIdentityPoolCommand;
+
+// src/commands/DeleteIdentitiesCommand.ts
+
+
+
+
+var _DeleteIdentitiesCommand = class _DeleteIdentitiesCommand extends import_smithy_client.Command.classBuilder().ep({
+  ...commonParams
+}).m(function(Command, cs, config, o) {
+  return [
+    (0, import_middleware_serde.getSerdePlugin)(config, this.serialize, this.deserialize),
+    (0, import_middleware_endpoint.getEndpointPlugin)(config, Command.getEndpointParameterInstructions())
+  ];
+}).s("AWSCognitoIdentityService", "DeleteIdentities", {}).n("CognitoIdentityClient", "DeleteIdentitiesCommand").f(void 0, void 0).ser(se_DeleteIdentitiesCommand).de(de_DeleteIdentitiesCommand).build() {
+};
+__name(_DeleteIdentitiesCommand, "DeleteIdentitiesCommand");
+var DeleteIdentitiesCommand = _DeleteIdentitiesCommand;
+
+// src/commands/DeleteIdentityPoolCommand.ts
+
+
+
+
+var _DeleteIdentityPoolCommand = class _DeleteIdentityPoolCommand extends import_smithy_client.Command.classBuilder().ep({
+  ...commonParams
+}).m(function(Command, cs, config, o) {
+  return [
+    (0, import_middleware_serde.getSerdePlugin)(config, this.serialize, this.deserialize),
+    (0, import_middleware_endpoint.getEndpointPlugin)(config, Command.getEndpointParameterInstructions())
+  ];
+}).s("AWSCognitoIdentityService", "DeleteIdentityPool", {}).n("CognitoIdentityClient", "DeleteIdentityPoolCommand").f(void 0, void 0).ser(se_DeleteIdentityPoolCommand).de(de_DeleteIdentityPoolCommand).build() {
+};
+__name(_DeleteIdentityPoolCommand, "DeleteIdentityPoolCommand");
+var DeleteIdentityPoolCommand = _DeleteIdentityPoolCommand;
+
+// src/commands/DescribeIdentityCommand.ts
+
+
+
+
+var _DescribeIdentityCommand = class _DescribeIdentityCommand extends import_smithy_client.Command.classBuilder().ep({
+  ...commonParams
+}).m(function(Command, cs, config, o) {
+  return [
+    (0, import_middleware_serde.getSerdePlugin)(config, this.serialize, this.deserialize),
+    (0, import_middleware_endpoint.getEndpointPlugin)(config, Command.getEndpointParameterInstructions())
+  ];
+}).s("AWSCognitoIdentityService", "DescribeIdentity", {}).n("CognitoIdentityClient", "DescribeIdentityCommand").f(void 0, void 0).ser(se_DescribeIdentityCommand).de(de_DescribeIdentityCommand).build() {
+};
+__name(_DescribeIdentityCommand, "DescribeIdentityCommand");
+var DescribeIdentityCommand = _DescribeIdentityCommand;
+
+// src/commands/DescribeIdentityPoolCommand.ts
+
+
+
+
+var _DescribeIdentityPoolCommand = class _DescribeIdentityPoolCommand extends import_smithy_client.Command.classBuilder().ep({
+  ...commonParams
+}).m(function(Command, cs, config, o) {
+  return [
+    (0, import_middleware_serde.getSerdePlugin)(config, this.serialize, this.deserialize),
+    (0, import_middleware_endpoint.getEndpointPlugin)(config, Command.getEndpointParameterInstructions())
+  ];
+}).s("AWSCognitoIdentityService", "DescribeIdentityPool", {}).n("CognitoIdentityClient", "DescribeIdentityPoolCommand").f(void 0, void 0).ser(se_DescribeIdentityPoolCommand).de(de_DescribeIdentityPoolCommand).build() {
+};
+__name(_DescribeIdentityPoolCommand, "DescribeIdentityPoolCommand");
+var DescribeIdentityPoolCommand = _DescribeIdentityPoolCommand;
+
+// src/commands/GetCredentialsForIdentityCommand.ts
+
+
+
+
+var _GetCredentialsForIdentityCommand = class _GetCredentialsForIdentityCommand extends import_smithy_client.Command.classBuilder().ep({
+  ...commonParams
+}).m(function(Command, cs, config, o) {
+  return [
+    (0, import_middleware_serde.getSerdePlugin)(config, this.serialize, this.deserialize),
+    (0, import_middleware_endpoint.getEndpointPlugin)(config, Command.getEndpointParameterInstructions())
+  ];
+}).s("AWSCognitoIdentityService", "GetCredentialsForIdentity", {}).n("CognitoIdentityClient", "GetCredentialsForIdentityCommand").f(void 0, void 0).ser(se_GetCredentialsForIdentityCommand).de(de_GetCredentialsForIdentityCommand).build() {
+};
+__name(_GetCredentialsForIdentityCommand, "GetCredentialsForIdentityCommand");
+var GetCredentialsForIdentityCommand = _GetCredentialsForIdentityCommand;
+
+// src/commands/GetIdCommand.ts
+
+
+
+
+var _GetIdCommand = class _GetIdCommand extends import_smithy_client.Command.classBuilder().ep({
+  ...commonParams
+}).m(function(Command, cs, config, o) {
+  return [
+    (0, import_middleware_serde.getSerdePlugin)(config, this.serialize, this.deserialize),
+    (0, import_middleware_endpoint.getEndpointPlugin)(config, Command.getEndpointParameterInstructions())
+  ];
+}).s("AWSCognitoIdentityService", "GetId", {}).n("CognitoIdentityClient", "GetIdCommand").f(void 0, void 0).ser(se_GetIdCommand).de(de_GetIdCommand).build() {
+};
+__name(_GetIdCommand, "GetIdCommand");
+var GetIdCommand = _GetIdCommand;
+
+// src/commands/GetIdentityPoolRolesCommand.ts
+
+
+
+
+var _GetIdentityPoolRolesCommand = class _GetIdentityPoolRolesCommand extends import_smithy_client.Command.classBuilder().ep({
+  ...commonParams
+}).m(function(Command, cs, config, o) {
+  return [
+    (0, import_middleware_serde.getSerdePlugin)(config, this.serialize, this.deserialize),
+    (0, import_middleware_endpoint.getEndpointPlugin)(config, Command.getEndpointParameterInstructions())
+  ];
+}).s("AWSCognitoIdentityService", "GetIdentityPoolRoles", {}).n("CognitoIdentityClient", "GetIdentityPoolRolesCommand").f(void 0, void 0).ser(se_GetIdentityPoolRolesCommand).de(de_GetIdentityPoolRolesCommand).build() {
+};
+__name(_GetIdentityPoolRolesCommand, "GetIdentityPoolRolesCommand");
+var GetIdentityPoolRolesCommand = _GetIdentityPoolRolesCommand;
+
+// src/commands/GetOpenIdTokenCommand.ts
+
+
+
+
+var _GetOpenIdTokenCommand = class _GetOpenIdTokenCommand extends import_smithy_client.Command.classBuilder().ep({
+  ...commonParams
+}).m(function(Command, cs, config, o) {
+  return [
+    (0, import_middleware_serde.getSerdePlugin)(config, this.serialize, this.deserialize),
+    (0, import_middleware_endpoint.getEndpointPlugin)(config, Command.getEndpointParameterInstructions())
+  ];
+}).s("AWSCognitoIdentityService", "GetOpenIdToken", {}).n("CognitoIdentityClient", "GetOpenIdTokenCommand").f(void 0, void 0).ser(se_GetOpenIdTokenCommand).de(de_GetOpenIdTokenCommand).build() {
+};
+__name(_GetOpenIdTokenCommand, "GetOpenIdTokenCommand");
+var GetOpenIdTokenCommand = _GetOpenIdTokenCommand;
+
+// src/commands/GetOpenIdTokenForDeveloperIdentityCommand.ts
+
+
+
+
+var _GetOpenIdTokenForDeveloperIdentityCommand = class _GetOpenIdTokenForDeveloperIdentityCommand extends import_smithy_client.Command.classBuilder().ep({
+  ...commonParams
+}).m(function(Command, cs, config, o) {
+  return [
+    (0, import_middleware_serde.getSerdePlugin)(config, this.serialize, this.deserialize),
+    (0, import_middleware_endpoint.getEndpointPlugin)(config, Command.getEndpointParameterInstructions())
+  ];
+}).s("AWSCognitoIdentityService", "GetOpenIdTokenForDeveloperIdentity", {}).n("CognitoIdentityClient", "GetOpenIdTokenForDeveloperIdentityCommand").f(void 0, void 0).ser(se_GetOpenIdTokenForDeveloperIdentityCommand).de(de_GetOpenIdTokenForDeveloperIdentityCommand).build() {
+};
+__name(_GetOpenIdTokenForDeveloperIdentityCommand, "GetOpenIdTokenForDeveloperIdentityCommand");
+var GetOpenIdTokenForDeveloperIdentityCommand = _GetOpenIdTokenForDeveloperIdentityCommand;
+
+// src/commands/GetPrincipalTagAttributeMapCommand.ts
+
+
+
+
+var _GetPrincipalTagAttributeMapCommand = class _GetPrincipalTagAttributeMapCommand extends import_smithy_client.Command.classBuilder().ep({
+  ...commonParams
+}).m(function(Command, cs, config, o) {
+  return [
+    (0, import_middleware_serde.getSerdePlugin)(config, this.serialize, this.deserialize),
+    (0, import_middleware_endpoint.getEndpointPlugin)(config, Command.getEndpointParameterInstructions())
+  ];
+}).s("AWSCognitoIdentityService", "GetPrincipalTagAttributeMap", {}).n("CognitoIdentityClient", "GetPrincipalTagAttributeMapCommand").f(void 0, void 0).ser(se_GetPrincipalTagAttributeMapCommand).de(de_GetPrincipalTagAttributeMapCommand).build() {
+};
+__name(_GetPrincipalTagAttributeMapCommand, "GetPrincipalTagAttributeMapCommand");
+var GetPrincipalTagAttributeMapCommand = _GetPrincipalTagAttributeMapCommand;
+
+// src/commands/ListIdentitiesCommand.ts
+
+
+
+
+var _ListIdentitiesCommand = class _ListIdentitiesCommand extends import_smithy_client.Command.classBuilder().ep({
+  ...commonParams
+}).m(function(Command, cs, config, o) {
+  return [
+    (0, import_middleware_serde.getSerdePlugin)(config, this.serialize, this.deserialize),
+    (0, import_middleware_endpoint.getEndpointPlugin)(config, Command.getEndpointParameterInstructions())
+  ];
+}).s("AWSCognitoIdentityService", "ListIdentities", {}).n("CognitoIdentityClient", "ListIdentitiesCommand").f(void 0, void 0).ser(se_ListIdentitiesCommand).de(de_ListIdentitiesCommand).build() {
+};
+__name(_ListIdentitiesCommand, "ListIdentitiesCommand");
+var ListIdentitiesCommand = _ListIdentitiesCommand;
+
+// src/commands/ListIdentityPoolsCommand.ts
+
+
+
+
+var _ListIdentityPoolsCommand = class _ListIdentityPoolsCommand extends import_smithy_client.Command.classBuilder().ep({
+  ...commonParams
+}).m(function(Command, cs, config, o) {
+  return [
+    (0, import_middleware_serde.getSerdePlugin)(config, this.serialize, this.deserialize),
+    (0, import_middleware_endpoint.getEndpointPlugin)(config, Command.getEndpointParameterInstructions())
+  ];
+}).s("AWSCognitoIdentityService", "ListIdentityPools", {}).n("CognitoIdentityClient", "ListIdentityPoolsCommand").f(void 0, void 0).ser(se_ListIdentityPoolsCommand).de(de_ListIdentityPoolsCommand).build() {
+};
+__name(_ListIdentityPoolsCommand, "ListIdentityPoolsCommand");
+var ListIdentityPoolsCommand = _ListIdentityPoolsCommand;
+
+// src/commands/ListTagsForResourceCommand.ts
+
+
+
+
+var _ListTagsForResourceCommand = class _ListTagsForResourceCommand extends import_smithy_client.Command.classBuilder().ep({
+  ...commonParams
+}).m(function(Command, cs, config, o) {
+  return [
+    (0, import_middleware_serde.getSerdePlugin)(config, this.serialize, this.deserialize),
+    (0, import_middleware_endpoint.getEndpointPlugin)(config, Command.getEndpointParameterInstructions())
+  ];
+}).s("AWSCognitoIdentityService", "ListTagsForResource", {}).n("CognitoIdentityClient", "ListTagsForResourceCommand").f(void 0, void 0).ser(se_ListTagsForResourceCommand).de(de_ListTagsForResourceCommand).build() {
+};
+__name(_ListTagsForResourceCommand, "ListTagsForResourceCommand");
+var ListTagsForResourceCommand = _ListTagsForResourceCommand;
+
+// src/commands/LookupDeveloperIdentityCommand.ts
+
+
+
+
+var _LookupDeveloperIdentityCommand = class _LookupDeveloperIdentityCommand extends import_smithy_client.Command.classBuilder().ep({
+  ...commonParams
+}).m(function(Command, cs, config, o) {
+  return [
+    (0, import_middleware_serde.getSerdePlugin)(config, this.serialize, this.deserialize),
+    (0, import_middleware_endpoint.getEndpointPlugin)(config, Command.getEndpointParameterInstructions())
+  ];
+}).s("AWSCognitoIdentityService", "LookupDeveloperIdentity", {}).n("CognitoIdentityClient", "LookupDeveloperIdentityCommand").f(void 0, void 0).ser(se_LookupDeveloperIdentityCommand).de(de_LookupDeveloperIdentityCommand).build() {
+};
+__name(_LookupDeveloperIdentityCommand, "LookupDeveloperIdentityCommand");
+var LookupDeveloperIdentityCommand = _LookupDeveloperIdentityCommand;
+
+// src/commands/MergeDeveloperIdentitiesCommand.ts
+
+
+
+
+var _MergeDeveloperIdentitiesCommand = class _MergeDeveloperIdentitiesCommand extends import_smithy_client.Command.classBuilder().ep({
+  ...commonParams
+}).m(function(Command, cs, config, o) {
+  return [
+    (0, import_middleware_serde.getSerdePlugin)(config, this.serialize, this.deserialize),
+    (0, import_middleware_endpoint.getEndpointPlugin)(config, Command.getEndpointParameterInstructions())
+  ];
+}).s("AWSCognitoIdentityService", "MergeDeveloperIdentities", {}).n("CognitoIdentityClient", "MergeDeveloperIdentitiesCommand").f(void 0, void 0).ser(se_MergeDeveloperIdentitiesCommand).de(de_MergeDeveloperIdentitiesCommand).build() {
+};
+__name(_MergeDeveloperIdentitiesCommand, "MergeDeveloperIdentitiesCommand");
+var MergeDeveloperIdentitiesCommand = _MergeDeveloperIdentitiesCommand;
+
+// src/commands/SetIdentityPoolRolesCommand.ts
+
+
+
+
+var _SetIdentityPoolRolesCommand = class _SetIdentityPoolRolesCommand extends import_smithy_client.Command.classBuilder().ep({
+  ...commonParams
+}).m(function(Command, cs, config, o) {
+  return [
+    (0, import_middleware_serde.getSerdePlugin)(config, this.serialize, this.deserialize),
+    (0, import_middleware_endpoint.getEndpointPlugin)(config, Command.getEndpointParameterInstructions())
+  ];
+}).s("AWSCognitoIdentityService", "SetIdentityPoolRoles", {}).n("CognitoIdentityClient", "SetIdentityPoolRolesCommand").f(void 0, void 0).ser(se_SetIdentityPoolRolesCommand).de(de_SetIdentityPoolRolesCommand).build() {
+};
+__name(_SetIdentityPoolRolesCommand, "SetIdentityPoolRolesCommand");
+var SetIdentityPoolRolesCommand = _SetIdentityPoolRolesCommand;
+
+// src/commands/SetPrincipalTagAttributeMapCommand.ts
+
+
+
+
+var _SetPrincipalTagAttributeMapCommand = class _SetPrincipalTagAttributeMapCommand extends import_smithy_client.Command.classBuilder().ep({
+  ...commonParams
+}).m(function(Command, cs, config, o) {
+  return [
+    (0, import_middleware_serde.getSerdePlugin)(config, this.serialize, this.deserialize),
+    (0, import_middleware_endpoint.getEndpointPlugin)(config, Command.getEndpointParameterInstructions())
+  ];
+}).s("AWSCognitoIdentityService", "SetPrincipalTagAttributeMap", {}).n("CognitoIdentityClient", "SetPrincipalTagAttributeMapCommand").f(void 0, void 0).ser(se_SetPrincipalTagAttributeMapCommand).de(de_SetPrincipalTagAttributeMapCommand).build() {
+};
+__name(_SetPrincipalTagAttributeMapCommand, "SetPrincipalTagAttributeMapCommand");
+var SetPrincipalTagAttributeMapCommand = _SetPrincipalTagAttributeMapCommand;
+
+// src/commands/TagResourceCommand.ts
+
+
+
+
+var _TagResourceCommand = class _TagResourceCommand extends import_smithy_client.Command.classBuilder().ep({
+  ...commonParams
+}).m(function(Command, cs, config, o) {
+  return [
+    (0, import_middleware_serde.getSerdePlugin)(config, this.serialize, this.deserialize),
+    (0, import_middleware_endpoint.getEndpointPlugin)(config, Command.getEndpointParameterInstructions())
+  ];
+}).s("AWSCognitoIdentityService", "TagResource", {}).n("CognitoIdentityClient", "TagResourceCommand").f(void 0, void 0).ser(se_TagResourceCommand).de(de_TagResourceCommand).build() {
+};
+__name(_TagResourceCommand, "TagResourceCommand");
+var TagResourceCommand = _TagResourceCommand;
+
+// src/commands/UnlinkDeveloperIdentityCommand.ts
+
+
+
+
+var _UnlinkDeveloperIdentityCommand = class _UnlinkDeveloperIdentityCommand extends import_smithy_client.Command.classBuilder().ep({
+  ...commonParams
+}).m(function(Command, cs, config, o) {
+  return [
+    (0, import_middleware_serde.getSerdePlugin)(config, this.serialize, this.deserialize),
+    (0, import_middleware_endpoint.getEndpointPlugin)(config, Command.getEndpointParameterInstructions())
+  ];
+}).s("AWSCognitoIdentityService", "UnlinkDeveloperIdentity", {}).n("CognitoIdentityClient", "UnlinkDeveloperIdentityCommand").f(void 0, void 0).ser(se_UnlinkDeveloperIdentityCommand).de(de_UnlinkDeveloperIdentityCommand).build() {
+};
+__name(_UnlinkDeveloperIdentityCommand, "UnlinkDeveloperIdentityCommand");
+var UnlinkDeveloperIdentityCommand = _UnlinkDeveloperIdentityCommand;
+
+// src/commands/UnlinkIdentityCommand.ts
+
+
+
+
+var _UnlinkIdentityCommand = class _UnlinkIdentityCommand extends import_smithy_client.Command.classBuilder().ep({
+  ...commonParams
+}).m(function(Command, cs, config, o) {
+  return [
+    (0, import_middleware_serde.getSerdePlugin)(config, this.serialize, this.deserialize),
+    (0, import_middleware_endpoint.getEndpointPlugin)(config, Command.getEndpointParameterInstructions())
+  ];
+}).s("AWSCognitoIdentityService", "UnlinkIdentity", {}).n("CognitoIdentityClient", "UnlinkIdentityCommand").f(void 0, void 0).ser(se_UnlinkIdentityCommand).de(de_UnlinkIdentityCommand).build() {
+};
+__name(_UnlinkIdentityCommand, "UnlinkIdentityCommand");
+var UnlinkIdentityCommand = _UnlinkIdentityCommand;
+
+// src/commands/UntagResourceCommand.ts
+
+
+
+
+var _UntagResourceCommand = class _UntagResourceCommand extends import_smithy_client.Command.classBuilder().ep({
+  ...commonParams
+}).m(function(Command, cs, config, o) {
+  return [
+    (0, import_middleware_serde.getSerdePlugin)(config, this.serialize, this.deserialize),
+    (0, import_middleware_endpoint.getEndpointPlugin)(config, Command.getEndpointParameterInstructions())
+  ];
+}).s("AWSCognitoIdentityService", "UntagResource", {}).n("CognitoIdentityClient", "UntagResourceCommand").f(void 0, void 0).ser(se_UntagResourceCommand).de(de_UntagResourceCommand).build() {
+};
+__name(_UntagResourceCommand, "UntagResourceCommand");
+var UntagResourceCommand = _UntagResourceCommand;
+
+// src/commands/UpdateIdentityPoolCommand.ts
+
+
+
+
+var _UpdateIdentityPoolCommand = class _UpdateIdentityPoolCommand extends import_smithy_client.Command.classBuilder().ep({
+  ...commonParams
+}).m(function(Command, cs, config, o) {
+  return [
+    (0, import_middleware_serde.getSerdePlugin)(config, this.serialize, this.deserialize),
+    (0, import_middleware_endpoint.getEndpointPlugin)(config, Command.getEndpointParameterInstructions())
+  ];
+}).s("AWSCognitoIdentityService", "UpdateIdentityPool", {}).n("CognitoIdentityClient", "UpdateIdentityPoolCommand").f(void 0, void 0).ser(se_UpdateIdentityPoolCommand).de(de_UpdateIdentityPoolCommand).build() {
+};
+__name(_UpdateIdentityPoolCommand, "UpdateIdentityPoolCommand");
+var UpdateIdentityPoolCommand = _UpdateIdentityPoolCommand;
+
+// src/CognitoIdentity.ts
+var commands = {
+  CreateIdentityPoolCommand,
+  DeleteIdentitiesCommand,
+  DeleteIdentityPoolCommand,
+  DescribeIdentityCommand,
+  DescribeIdentityPoolCommand,
+  GetCredentialsForIdentityCommand,
+  GetIdCommand,
+  GetIdentityPoolRolesCommand,
+  GetOpenIdTokenCommand,
+  GetOpenIdTokenForDeveloperIdentityCommand,
+  GetPrincipalTagAttributeMapCommand,
+  ListIdentitiesCommand,
+  ListIdentityPoolsCommand,
+  ListTagsForResourceCommand,
+  LookupDeveloperIdentityCommand,
+  MergeDeveloperIdentitiesCommand,
+  SetIdentityPoolRolesCommand,
+  SetPrincipalTagAttributeMapCommand,
+  TagResourceCommand,
+  UnlinkDeveloperIdentityCommand,
+  UnlinkIdentityCommand,
+  UntagResourceCommand,
+  UpdateIdentityPoolCommand
+};
+var _CognitoIdentity = class _CognitoIdentity extends CognitoIdentityClient {
+};
+__name(_CognitoIdentity, "CognitoIdentity");
+var CognitoIdentity = _CognitoIdentity;
+(0, import_smithy_client.createAggregatedClient)(commands, CognitoIdentity);
+
+// src/pagination/ListIdentityPoolsPaginator.ts
+
+var paginateListIdentityPools = (0, import_core.createPaginator)(CognitoIdentityClient, ListIdentityPoolsCommand, "NextToken", "NextToken", "MaxResults");
+
+// src/index.ts
+var import_util_endpoints = __nccwpck_require__(3350);
+// Annotate the CommonJS export names for ESM import in node:
+
+0 && (0);
+
+
+
+/***/ }),
+
+/***/ 6042:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getRuntimeConfig = void 0;
+const tslib_1 = __nccwpck_require__(4351);
+const package_json_1 = tslib_1.__importDefault(__nccwpck_require__(3239));
+const core_1 = __nccwpck_require__(9963);
+const credential_provider_node_1 = __nccwpck_require__(5531);
+const util_user_agent_node_1 = __nccwpck_require__(8095);
+const config_resolver_1 = __nccwpck_require__(3098);
+const hash_node_1 = __nccwpck_require__(3081);
+const middleware_retry_1 = __nccwpck_require__(6039);
+const node_config_provider_1 = __nccwpck_require__(3461);
+const node_http_handler_1 = __nccwpck_require__(258);
+const util_body_length_node_1 = __nccwpck_require__(8075);
+const util_retry_1 = __nccwpck_require__(4902);
+const runtimeConfig_shared_1 = __nccwpck_require__(2434);
+const smithy_client_1 = __nccwpck_require__(3570);
+const util_defaults_mode_node_1 = __nccwpck_require__(2429);
+const smithy_client_2 = __nccwpck_require__(3570);
+const getRuntimeConfig = (config) => {
+    (0, smithy_client_2.emitWarningIfUnsupportedVersion)(process.version);
+    const defaultsMode = (0, util_defaults_mode_node_1.resolveDefaultsModeConfig)(config);
+    const defaultConfigProvider = () => defaultsMode().then(smithy_client_1.loadConfigsForDefaultMode);
+    const clientSharedValues = (0, runtimeConfig_shared_1.getRuntimeConfig)(config);
+    (0, core_1.emitWarningIfUnsupportedVersion)(process.version);
+    return {
+        ...clientSharedValues,
+        ...config,
+        runtime: "node",
+        defaultsMode,
+        bodyLengthChecker: config?.bodyLengthChecker ?? util_body_length_node_1.calculateBodyLength,
+        credentialDefaultProvider: config?.credentialDefaultProvider ?? credential_provider_node_1.defaultProvider,
+        defaultUserAgentProvider: config?.defaultUserAgentProvider ??
+            (0, util_user_agent_node_1.defaultUserAgent)({ serviceId: clientSharedValues.serviceId, clientVersion: package_json_1.default.version }),
+        maxAttempts: config?.maxAttempts ?? (0, node_config_provider_1.loadConfig)(middleware_retry_1.NODE_MAX_ATTEMPT_CONFIG_OPTIONS),
+        region: config?.region ?? (0, node_config_provider_1.loadConfig)(config_resolver_1.NODE_REGION_CONFIG_OPTIONS, config_resolver_1.NODE_REGION_CONFIG_FILE_OPTIONS),
+        requestHandler: config?.requestHandler ?? new node_http_handler_1.NodeHttpHandler(defaultConfigProvider),
+        retryMode: config?.retryMode ??
+            (0, node_config_provider_1.loadConfig)({
+                ...middleware_retry_1.NODE_RETRY_MODE_CONFIG_OPTIONS,
+                default: async () => (await defaultConfigProvider()).retryMode || util_retry_1.DEFAULT_RETRY_MODE,
+            }),
+        sha256: config?.sha256 ?? hash_node_1.Hash.bind(null, "sha256"),
+        streamCollector: config?.streamCollector ?? node_http_handler_1.streamCollector,
+        useDualstackEndpoint: config?.useDualstackEndpoint ?? (0, node_config_provider_1.loadConfig)(config_resolver_1.NODE_USE_DUALSTACK_ENDPOINT_CONFIG_OPTIONS),
+        useFipsEndpoint: config?.useFipsEndpoint ?? (0, node_config_provider_1.loadConfig)(config_resolver_1.NODE_USE_FIPS_ENDPOINT_CONFIG_OPTIONS),
+    };
+};
+exports.getRuntimeConfig = getRuntimeConfig;
+
+
+/***/ }),
+
+/***/ 2434:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getRuntimeConfig = void 0;
+const core_1 = __nccwpck_require__(9963);
+const core_2 = __nccwpck_require__(5829);
+const smithy_client_1 = __nccwpck_require__(3570);
+const url_parser_1 = __nccwpck_require__(4681);
+const util_base64_1 = __nccwpck_require__(5600);
+const util_utf8_1 = __nccwpck_require__(1895);
+const httpAuthSchemeProvider_1 = __nccwpck_require__(8661);
+const endpointResolver_1 = __nccwpck_require__(8554);
+const getRuntimeConfig = (config) => {
+    return {
+        apiVersion: "2014-06-30",
+        base64Decoder: config?.base64Decoder ?? util_base64_1.fromBase64,
+        base64Encoder: config?.base64Encoder ?? util_base64_1.toBase64,
+        disableHostPrefix: config?.disableHostPrefix ?? false,
+        endpointProvider: config?.endpointProvider ?? endpointResolver_1.defaultEndpointResolver,
+        extensions: config?.extensions ?? [],
+        httpAuthSchemeProvider: config?.httpAuthSchemeProvider ?? httpAuthSchemeProvider_1.defaultCognitoIdentityHttpAuthSchemeProvider,
+        httpAuthSchemes: config?.httpAuthSchemes ?? [
+            {
+                schemeId: "aws.auth#sigv4",
+                identityProvider: (ipc) => ipc.getIdentityProvider("aws.auth#sigv4"),
+                signer: new core_1.AwsSdkSigV4Signer(),
+            },
+            {
+                schemeId: "smithy.api#noAuth",
+                identityProvider: (ipc) => ipc.getIdentityProvider("smithy.api#noAuth") || (async () => ({})),
+                signer: new core_2.NoAuthSigner(),
+            },
+        ],
+        logger: config?.logger ?? new smithy_client_1.NoOpLogger(),
+        serviceId: config?.serviceId ?? "Cognito Identity",
+        urlParser: config?.urlParser ?? url_parser_1.parseUrl,
+        utf8Decoder: config?.utf8Decoder ?? util_utf8_1.fromUtf8,
+        utf8Encoder: config?.utf8Encoder ?? util_utf8_1.toUtf8,
+    };
+};
+exports.getRuntimeConfig = getRuntimeConfig;
+
+
+/***/ }),
+
 /***/ 6948:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -7049,6 +8831,296 @@ var awsExpectUnion = /* @__PURE__ */ __name((value) => {
 
 /***/ }),
 
+/***/ 5538:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+var __esm = (fn, res) => function __init() {
+  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+};
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// src/loadCognitoIdentity.ts
+var loadCognitoIdentity_exports = {};
+__export(loadCognitoIdentity_exports, {
+  CognitoIdentityClient: () => import_client_cognito_identity.CognitoIdentityClient,
+  GetCredentialsForIdentityCommand: () => import_client_cognito_identity.GetCredentialsForIdentityCommand,
+  GetIdCommand: () => import_client_cognito_identity.GetIdCommand
+});
+var import_client_cognito_identity;
+var init_loadCognitoIdentity = __esm({
+  "src/loadCognitoIdentity.ts"() {
+    import_client_cognito_identity = __nccwpck_require__(5880);
+  }
+});
+
+// src/index.ts
+var src_exports = {};
+__export(src_exports, {
+  fromCognitoIdentity: () => fromCognitoIdentity,
+  fromCognitoIdentityPool: () => fromCognitoIdentityPool
+});
+module.exports = __toCommonJS(src_exports);
+
+// src/fromCognitoIdentity.ts
+var import_property_provider = __nccwpck_require__(9721);
+
+// src/resolveLogins.ts
+function resolveLogins(logins) {
+  return Promise.all(
+    Object.keys(logins).reduce((arr, name) => {
+      const tokenOrProvider = logins[name];
+      if (typeof tokenOrProvider === "string") {
+        arr.push([name, tokenOrProvider]);
+      } else {
+        arr.push(tokenOrProvider().then((token) => [name, token]));
+      }
+      return arr;
+    }, [])
+  ).then(
+    (resolvedPairs) => resolvedPairs.reduce((logins2, [key, value]) => {
+      logins2[key] = value;
+      return logins2;
+    }, {})
+  );
+}
+__name(resolveLogins, "resolveLogins");
+
+// src/fromCognitoIdentity.ts
+function fromCognitoIdentity(parameters) {
+  return async () => {
+    var _a, _b, _c;
+    (_a = parameters.logger) == null ? void 0 : _a.debug("@aws-sdk/credential-provider-cognito-identity", "fromCognitoIdentity");
+    const { GetCredentialsForIdentityCommand: GetCredentialsForIdentityCommand2, CognitoIdentityClient: CognitoIdentityClient2 } = await Promise.resolve().then(() => (init_loadCognitoIdentity(), loadCognitoIdentity_exports));
+    const {
+      Credentials: {
+        AccessKeyId = throwOnMissingAccessKeyId(),
+        Expiration,
+        SecretKey = throwOnMissingSecretKey(),
+        SessionToken
+      } = throwOnMissingCredentials()
+    } = await (parameters.client ?? new CognitoIdentityClient2(
+      Object.assign({}, parameters.clientConfig ?? {}, {
+        region: ((_b = parameters.clientConfig) == null ? void 0 : _b.region) ?? ((_c = parameters.parentClientConfig) == null ? void 0 : _c.region)
+      })
+    )).send(
+      new GetCredentialsForIdentityCommand2({
+        CustomRoleArn: parameters.customRoleArn,
+        IdentityId: parameters.identityId,
+        Logins: parameters.logins ? await resolveLogins(parameters.logins) : void 0
+      })
+    );
+    return {
+      identityId: parameters.identityId,
+      accessKeyId: AccessKeyId,
+      secretAccessKey: SecretKey,
+      sessionToken: SessionToken,
+      expiration: Expiration
+    };
+  };
+}
+__name(fromCognitoIdentity, "fromCognitoIdentity");
+function throwOnMissingAccessKeyId() {
+  throw new import_property_provider.CredentialsProviderError("Response from Amazon Cognito contained no access key ID");
+}
+__name(throwOnMissingAccessKeyId, "throwOnMissingAccessKeyId");
+function throwOnMissingCredentials() {
+  throw new import_property_provider.CredentialsProviderError("Response from Amazon Cognito contained no credentials");
+}
+__name(throwOnMissingCredentials, "throwOnMissingCredentials");
+function throwOnMissingSecretKey() {
+  throw new import_property_provider.CredentialsProviderError("Response from Amazon Cognito contained no secret key");
+}
+__name(throwOnMissingSecretKey, "throwOnMissingSecretKey");
+
+// src/fromCognitoIdentityPool.ts
+
+
+// src/IndexedDbStorage.ts
+var STORE_NAME = "IdentityIds";
+var _IndexedDbStorage = class _IndexedDbStorage {
+  constructor(dbName = "aws:cognito-identity-ids") {
+    this.dbName = dbName;
+  }
+  getItem(key) {
+    return this.withObjectStore("readonly", (store) => {
+      const req = store.get(key);
+      return new Promise((resolve) => {
+        req.onerror = () => resolve(null);
+        req.onsuccess = () => resolve(req.result ? req.result.value : null);
+      });
+    }).catch(() => null);
+  }
+  removeItem(key) {
+    return this.withObjectStore("readwrite", (store) => {
+      const req = store.delete(key);
+      return new Promise((resolve, reject) => {
+        req.onerror = () => reject(req.error);
+        req.onsuccess = () => resolve();
+      });
+    });
+  }
+  setItem(id, value) {
+    return this.withObjectStore("readwrite", (store) => {
+      const req = store.put({ id, value });
+      return new Promise((resolve, reject) => {
+        req.onerror = () => reject(req.error);
+        req.onsuccess = () => resolve();
+      });
+    });
+  }
+  getDb() {
+    const openDbRequest = self.indexedDB.open(this.dbName, 1);
+    return new Promise((resolve, reject) => {
+      openDbRequest.onsuccess = () => {
+        resolve(openDbRequest.result);
+      };
+      openDbRequest.onerror = () => {
+        reject(openDbRequest.error);
+      };
+      openDbRequest.onblocked = () => {
+        reject(new Error("Unable to access DB"));
+      };
+      openDbRequest.onupgradeneeded = () => {
+        const db = openDbRequest.result;
+        db.onerror = () => {
+          reject(new Error("Failed to create object store"));
+        };
+        db.createObjectStore(STORE_NAME, { keyPath: "id" });
+      };
+    });
+  }
+  withObjectStore(mode, action) {
+    return this.getDb().then((db) => {
+      const tx = db.transaction(STORE_NAME, mode);
+      tx.oncomplete = () => db.close();
+      return new Promise((resolve, reject) => {
+        tx.onerror = () => reject(tx.error);
+        resolve(action(tx.objectStore(STORE_NAME)));
+      }).catch((err) => {
+        db.close();
+        throw err;
+      });
+    });
+  }
+};
+__name(_IndexedDbStorage, "IndexedDbStorage");
+var IndexedDbStorage = _IndexedDbStorage;
+
+// src/InMemoryStorage.ts
+var _InMemoryStorage = class _InMemoryStorage {
+  constructor(store = {}) {
+    this.store = store;
+  }
+  getItem(key) {
+    if (key in this.store) {
+      return this.store[key];
+    }
+    return null;
+  }
+  removeItem(key) {
+    delete this.store[key];
+  }
+  setItem(key, value) {
+    this.store[key] = value;
+  }
+};
+__name(_InMemoryStorage, "InMemoryStorage");
+var InMemoryStorage = _InMemoryStorage;
+
+// src/localStorage.ts
+var inMemoryStorage = new InMemoryStorage();
+function localStorage() {
+  if (typeof self === "object" && self.indexedDB) {
+    return new IndexedDbStorage();
+  }
+  if (typeof window === "object" && window.localStorage) {
+    return window.localStorage;
+  }
+  return inMemoryStorage;
+}
+__name(localStorage, "localStorage");
+
+// src/fromCognitoIdentityPool.ts
+function fromCognitoIdentityPool({
+  accountId,
+  cache = localStorage(),
+  client,
+  clientConfig,
+  customRoleArn,
+  identityPoolId,
+  logins,
+  userIdentifier = !logins || Object.keys(logins).length === 0 ? "ANONYMOUS" : void 0,
+  logger,
+  parentClientConfig
+}) {
+  logger == null ? void 0 : logger.debug("@aws-sdk/credential-provider-cognito-identity", "fromCognitoIdentity");
+  const cacheKey = userIdentifier ? `aws:cognito-identity-credentials:${identityPoolId}:${userIdentifier}` : void 0;
+  let provider = /* @__PURE__ */ __name(async () => {
+    const { GetIdCommand: GetIdCommand2, CognitoIdentityClient: CognitoIdentityClient2 } = await Promise.resolve().then(() => (init_loadCognitoIdentity(), loadCognitoIdentity_exports));
+    const _client = client ?? new CognitoIdentityClient2(
+      Object.assign({}, clientConfig ?? {}, { region: (clientConfig == null ? void 0 : clientConfig.region) ?? (parentClientConfig == null ? void 0 : parentClientConfig.region) })
+    );
+    let identityId = cacheKey && await cache.getItem(cacheKey);
+    if (!identityId) {
+      const { IdentityId = throwOnMissingId() } = await _client.send(
+        new GetIdCommand2({
+          AccountId: accountId,
+          IdentityPoolId: identityPoolId,
+          Logins: logins ? await resolveLogins(logins) : void 0
+        })
+      );
+      identityId = IdentityId;
+      if (cacheKey) {
+        Promise.resolve(cache.setItem(cacheKey, identityId)).catch(() => {
+        });
+      }
+    }
+    provider = fromCognitoIdentity({
+      client: _client,
+      customRoleArn,
+      logins,
+      identityId
+    });
+    return provider();
+  }, "provider");
+  return () => provider().catch(async (err) => {
+    if (cacheKey) {
+      Promise.resolve(cache.removeItem(cacheKey)).catch(() => {
+      });
+    }
+    throw err;
+  });
+}
+__name(fromCognitoIdentityPool, "fromCognitoIdentityPool");
+function throwOnMissingId() {
+  throw new import_property_provider.CredentialsProviderError("Response from Amazon Cognito contained no identity ID");
+}
+__name(throwOnMissingId, "throwOnMissingId");
+// Annotate the CommonJS export names for ESM import in node:
+
+0 && (0);
+
+
+
+/***/ }),
+
 /***/ 5972:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -8132,6 +10204,291 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getDefaultRoleAssumerWithWebIdentity = void 0;
 const client_sts_1 = __nccwpck_require__(2209);
 Object.defineProperty(exports, "getDefaultRoleAssumerWithWebIdentity", ({ enumerable: true, get: function () { return client_sts_1.getDefaultRoleAssumerWithWebIdentity; } }));
+
+
+/***/ }),
+
+/***/ 403:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.fromCognitoIdentity = void 0;
+const credential_provider_cognito_identity_1 = __nccwpck_require__(5538);
+const fromCognitoIdentity = (options) => (0, credential_provider_cognito_identity_1.fromCognitoIdentity)({
+    ...options,
+});
+exports.fromCognitoIdentity = fromCognitoIdentity;
+
+
+/***/ }),
+
+/***/ 7856:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.fromCognitoIdentityPool = void 0;
+const credential_provider_cognito_identity_1 = __nccwpck_require__(5538);
+const fromCognitoIdentityPool = (options) => (0, credential_provider_cognito_identity_1.fromCognitoIdentityPool)({
+    ...options,
+});
+exports.fromCognitoIdentityPool = fromCognitoIdentityPool;
+
+
+/***/ }),
+
+/***/ 5047:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.fromContainerMetadata = void 0;
+const credential_provider_imds_1 = __nccwpck_require__(7477);
+const fromContainerMetadata = (init) => {
+    var _a;
+    (_a = init === null || init === void 0 ? void 0 : init.logger) === null || _a === void 0 ? void 0 : _a.debug("@smithy/credential-provider-imds", "fromContainerMetadata");
+    return (0, credential_provider_imds_1.fromContainerMetadata)(init);
+};
+exports.fromContainerMetadata = fromContainerMetadata;
+
+
+/***/ }),
+
+/***/ 5695:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.fromEnv = void 0;
+const credential_provider_env_1 = __nccwpck_require__(5972);
+const fromEnv = (init) => (0, credential_provider_env_1.fromEnv)(init);
+exports.fromEnv = fromEnv;
+
+
+/***/ }),
+
+/***/ 7133:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.fromIni = void 0;
+const credential_provider_ini_1 = __nccwpck_require__(4203);
+const fromIni = (init = {}) => (0, credential_provider_ini_1.fromIni)({
+    ...init,
+});
+exports.fromIni = fromIni;
+
+
+/***/ }),
+
+/***/ 6871:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.fromInstanceMetadata = void 0;
+const credential_provider_imds_1 = __nccwpck_require__(7477);
+const fromInstanceMetadata = (init) => {
+    var _a;
+    (_a = init === null || init === void 0 ? void 0 : init.logger) === null || _a === void 0 ? void 0 : _a.debug("@smithy/credential-provider-imds", "fromInstanceMetadata");
+    return (0, credential_provider_imds_1.fromInstanceMetadata)(init);
+};
+exports.fromInstanceMetadata = fromInstanceMetadata;
+
+
+/***/ }),
+
+/***/ 5967:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.fromNodeProviderChain = void 0;
+const credential_provider_node_1 = __nccwpck_require__(5531);
+const fromNodeProviderChain = (init = {}) => (0, credential_provider_node_1.defaultProvider)({
+    ...init,
+});
+exports.fromNodeProviderChain = fromNodeProviderChain;
+
+
+/***/ }),
+
+/***/ 2506:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.fromProcess = void 0;
+const credential_provider_process_1 = __nccwpck_require__(9969);
+const fromProcess = (init) => (0, credential_provider_process_1.fromProcess)(init);
+exports.fromProcess = fromProcess;
+
+
+/***/ }),
+
+/***/ 2836:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.fromSSO = void 0;
+const credential_provider_sso_1 = __nccwpck_require__(6414);
+const fromSSO = (init = {}) => {
+    return (0, credential_provider_sso_1.fromSSO)({ ...init });
+};
+exports.fromSSO = fromSSO;
+
+
+/***/ }),
+
+/***/ 2223:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.fromTemporaryCredentials = void 0;
+const property_provider_1 = __nccwpck_require__(9721);
+const fromTemporaryCredentials = (options) => {
+    let stsClient;
+    return async () => {
+        var _a, _b;
+        (_a = options.logger) === null || _a === void 0 ? void 0 : _a.debug("@aws-sdk/credential-providers", "fromTemporaryCredentials (STS)");
+        const params = { ...options.params, RoleSessionName: (_b = options.params.RoleSessionName) !== null && _b !== void 0 ? _b : "aws-sdk-js-" + Date.now() };
+        if (params === null || params === void 0 ? void 0 : params.SerialNumber) {
+            if (!options.mfaCodeProvider) {
+                throw new property_provider_1.CredentialsProviderError(`Temporary credential requires multi-factor authentication,` + ` but no MFA code callback was provided.`, false);
+            }
+            params.TokenCode = await options.mfaCodeProvider(params === null || params === void 0 ? void 0 : params.SerialNumber);
+        }
+        const { AssumeRoleCommand, STSClient } = await Promise.resolve().then(() => __importStar(__nccwpck_require__(5709)));
+        if (!stsClient)
+            stsClient = new STSClient({ ...options.clientConfig, credentials: options.masterCredentials });
+        if (options.clientPlugins) {
+            for (const plugin of options.clientPlugins) {
+                stsClient.middlewareStack.use(plugin);
+            }
+        }
+        const { Credentials } = await stsClient.send(new AssumeRoleCommand(params));
+        if (!Credentials || !Credentials.AccessKeyId || !Credentials.SecretAccessKey) {
+            throw new property_provider_1.CredentialsProviderError(`Invalid response from STS.assumeRole call with role ${params.RoleArn}`);
+        }
+        return {
+            accessKeyId: Credentials.AccessKeyId,
+            secretAccessKey: Credentials.SecretAccessKey,
+            sessionToken: Credentials.SessionToken,
+            expiration: Credentials.Expiration,
+            credentialScope: Credentials.CredentialScope,
+        };
+    };
+};
+exports.fromTemporaryCredentials = fromTemporaryCredentials;
+
+
+/***/ }),
+
+/***/ 2135:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.fromTokenFile = void 0;
+const credential_provider_web_identity_1 = __nccwpck_require__(5646);
+const fromTokenFile = (init = {}) => (0, credential_provider_web_identity_1.fromTokenFile)({
+    ...init,
+});
+exports.fromTokenFile = fromTokenFile;
+
+
+/***/ }),
+
+/***/ 3197:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.fromWebToken = void 0;
+const credential_provider_web_identity_1 = __nccwpck_require__(5646);
+const fromWebToken = (init) => (0, credential_provider_web_identity_1.fromWebToken)({
+    ...init,
+});
+exports.fromWebToken = fromWebToken;
+
+
+/***/ }),
+
+/***/ 7464:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.fromHttp = void 0;
+const tslib_1 = __nccwpck_require__(4351);
+tslib_1.__exportStar(__nccwpck_require__(403), exports);
+tslib_1.__exportStar(__nccwpck_require__(7856), exports);
+tslib_1.__exportStar(__nccwpck_require__(5047), exports);
+tslib_1.__exportStar(__nccwpck_require__(5695), exports);
+var credential_provider_http_1 = __nccwpck_require__(7290);
+Object.defineProperty(exports, "fromHttp", ({ enumerable: true, get: function () { return credential_provider_http_1.fromHttp; } }));
+tslib_1.__exportStar(__nccwpck_require__(7133), exports);
+tslib_1.__exportStar(__nccwpck_require__(6871), exports);
+tslib_1.__exportStar(__nccwpck_require__(5967), exports);
+tslib_1.__exportStar(__nccwpck_require__(2506), exports);
+tslib_1.__exportStar(__nccwpck_require__(2836), exports);
+tslib_1.__exportStar(__nccwpck_require__(2223), exports);
+tslib_1.__exportStar(__nccwpck_require__(2135), exports);
+tslib_1.__exportStar(__nccwpck_require__(3197), exports);
+
+
+/***/ }),
+
+/***/ 5709:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.STSClient = exports.AssumeRoleCommand = void 0;
+const client_sts_1 = __nccwpck_require__(2209);
+Object.defineProperty(exports, "AssumeRoleCommand", ({ enumerable: true, get: function () { return client_sts_1.AssumeRoleCommand; } }));
+Object.defineProperty(exports, "STSClient", ({ enumerable: true, get: function () { return client_sts_1.STSClient; } }));
 
 
 /***/ }),
@@ -48620,6 +50977,14 @@ module.exports = parseParams
 
 /***/ }),
 
+/***/ 3239:
+/***/ ((module) => {
+
+"use strict";
+module.exports = JSON.parse('{"name":"@aws-sdk/client-cognito-identity","description":"AWS SDK for JavaScript Cognito Identity Client for Node.js, Browser and React Native","version":"3.514.0","scripts":{"build":"concurrently \'yarn:build:cjs\' \'yarn:build:es\' \'yarn:build:types\'","build:cjs":"node ../../scripts/compilation/inline client-cognito-identity","build:es":"tsc -p tsconfig.es.json","build:include:deps":"lerna run --scope $npm_package_name --include-dependencies build","build:types":"tsc -p tsconfig.types.json","build:types:downlevel":"downlevel-dts dist-types dist-types/ts3.4","clean":"rimraf ./dist-* && rimraf *.tsbuildinfo","extract:docs":"api-extractor run --local","generate:client":"node ../../scripts/generate-clients/single-service --solo cognito-identity","test:e2e":"ts-mocha test/**/*.ispec.ts && karma start karma.conf.js"},"main":"./dist-cjs/index.js","types":"./dist-types/index.d.ts","module":"./dist-es/index.js","sideEffects":false,"dependencies":{"@aws-crypto/sha256-browser":"3.0.0","@aws-crypto/sha256-js":"3.0.0","@aws-sdk/client-sts":"3.513.0","@aws-sdk/core":"3.513.0","@aws-sdk/credential-provider-node":"3.514.0","@aws-sdk/middleware-host-header":"3.511.0","@aws-sdk/middleware-logger":"3.511.0","@aws-sdk/middleware-recursion-detection":"3.511.0","@aws-sdk/middleware-user-agent":"3.511.0","@aws-sdk/region-config-resolver":"3.511.0","@aws-sdk/types":"3.511.0","@aws-sdk/util-endpoints":"3.511.0","@aws-sdk/util-user-agent-browser":"3.511.0","@aws-sdk/util-user-agent-node":"3.511.0","@smithy/config-resolver":"^2.1.1","@smithy/core":"^1.3.2","@smithy/fetch-http-handler":"^2.4.1","@smithy/hash-node":"^2.1.1","@smithy/invalid-dependency":"^2.1.1","@smithy/middleware-content-length":"^2.1.1","@smithy/middleware-endpoint":"^2.4.1","@smithy/middleware-retry":"^2.1.1","@smithy/middleware-serde":"^2.1.1","@smithy/middleware-stack":"^2.1.1","@smithy/node-config-provider":"^2.2.1","@smithy/node-http-handler":"^2.3.1","@smithy/protocol-http":"^3.1.1","@smithy/smithy-client":"^2.3.1","@smithy/types":"^2.9.1","@smithy/url-parser":"^2.1.1","@smithy/util-base64":"^2.1.1","@smithy/util-body-length-browser":"^2.1.1","@smithy/util-body-length-node":"^2.2.1","@smithy/util-defaults-mode-browser":"^2.1.1","@smithy/util-defaults-mode-node":"^2.2.0","@smithy/util-endpoints":"^1.1.1","@smithy/util-middleware":"^2.1.1","@smithy/util-retry":"^2.1.1","@smithy/util-utf8":"^2.1.1","tslib":"^2.5.0"},"devDependencies":{"@aws-sdk/client-iam":"3.514.0","@smithy/service-client-documentation-generator":"^2.1.1","@tsconfig/node14":"1.0.3","@types/chai":"^4.2.11","@types/mocha":"^8.0.4","@types/node":"^14.14.31","concurrently":"7.0.0","downlevel-dts":"0.10.1","rimraf":"3.0.2","typescript":"~4.9.5"},"engines":{"node":">=14.0.0"},"typesVersions":{"<4.0":{"dist-types/*":["dist-types/ts3.4/*"]}},"files":["dist-*/**"],"author":{"name":"AWS SDK for JavaScript Team","url":"https://aws.amazon.com/javascript/"},"license":"Apache-2.0","browser":{"./dist-es/runtimeConfig":"./dist-es/runtimeConfig.browser"},"react-native":{"./dist-es/runtimeConfig":"./dist-es/runtimeConfig.native"},"homepage":"https://github.com/aws/aws-sdk-js-v3/tree/main/clients/client-cognito-identity","repository":{"type":"git","url":"https://github.com/aws/aws-sdk-js-v3.git","directory":"clients/client-cognito-identity"}}');
+
+/***/ }),
+
 /***/ 9722:
 /***/ ((module) => {
 
@@ -48687,18 +51052,14 @@ var __webpack_exports__ = {};
 (() => {
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
-const {STSClient, GetSessionTokenCommand} = __nccwpck_require__(2209);
+const {fromInstanceMetadata} = __nccwpck_require__(7464);
 
 async function run() {
-    const region = core.getInput('region');
-    let durationSeconds = Number(core.getInput("duration_seconds"));
+    const awsCredentialIdentity = await fromInstanceMetadata()();
 
-    const sts = new STSClient({region});
-    const sessionToken = await sts.send(new GetSessionTokenCommand({DurationSeconds: durationSeconds}));
-
-    core.setOutput('access_key_id', sessionToken.Credentials.AccessKeyId);
-    core.setOutput('secret_access_key', sessionToken.Credentials.SecretAccessKey);
-    core.setOutput('session_token', sessionToken.Credentials.SessionToken);
+    core.setOutput('access_key_id', awsCredentialIdentity.accessKeyId);
+    core.setOutput('secret_access_key', awsCredentialIdentity.secretAccessKey);
+    core.setOutput('session_token', awsCredentialIdentity.sessionToken);
 
     console.log('Successfully generated temporary AWS credentials');
 
