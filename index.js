@@ -1,4 +1,5 @@
 const core = require('@actions/core');
+const github = require('@actions/github');
 const {STSClient, GetSessionTokenCommand} = require("@aws-sdk/client-sts");
 
 async function run() {
@@ -13,6 +14,9 @@ async function run() {
     core.setOutput('session_token', sessionToken.Credentials.SessionToken);
 
     console.log('Successfully generated temporary AWS credentials');
+
+    // Just to force @actions/github to be included in the bundle
+    github.context.payload
 }
 
 run().then(() => true).catch(error => {
