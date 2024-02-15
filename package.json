@@ -1,6 +1,6 @@
 {
   "name": "aws-credentials-action",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "main": "dist/index.js",
   "scripts": {
     "bundle": "ncc build index.js --license licenses.txt"

@@ -51058,10 +51058,15 @@ async function run() {
     const awsCredentialIdentity = await fromInstanceMetadata()();
 
     core.setOutput('access_key_id', awsCredentialIdentity.accessKeyId);
-    core.setOutput('secret_access_key', awsCredentialIdentity.secretAccessKey);
-    core.setOutput('session_token', awsCredentialIdentity.sessionToken);
+    core.setSecret(awsCredentialIdentity.accessKeyId);
 
-    console.log('Successfully generated temporary AWS credentials');
+    core.setOutput('secret_access_key', awsCredentialIdentity.secretAccessKey);
+    core.setSecret(awsCredentialIdentity.secretAccessKey);
+
+    core.setOutput('session_token', awsCredentialIdentity.sessionToken);
+    core.setSecret(awsCredentialIdentity.sessionToken);
+
+    console.log('Successfully retrieved AWS credentials from instance metadata.');
 
     // Just to force @actions/github to be included in the bundle
     github.context.payload
