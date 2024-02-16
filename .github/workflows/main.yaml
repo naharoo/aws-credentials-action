@@ -58,7 +58,7 @@ jobs:
             const packageJson = require("./package.json");
             const newVersion = semver.inc(`${packageJson.version}.0`, "minor").replace(".0", "");
             packageJson.version = newVersion;
-            fs.writeFileSync("./package.json", JSON.stringify(packageJson, null, 2));
+            fs.writeFileSync("./package.json", JSON.stringify(packageJson, null, 2) + "\n");
       
             // Configure Git
             await exec.exec("git", ["config", "--global", "user.name", "GitHub Action"]);
@@ -75,6 +75,6 @@ jobs:
             await exec.exec("git", ["tag", "v" + newVersion]);
       
             // Push
-            await exec.exec("git", ["push", "--follow-tags"]);
+            await exec.exec("git", ["push", "--tags"]);
             
           
