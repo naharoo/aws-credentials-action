@@ -9,7 +9,9 @@
     "clean": "shx rm -rf dist",
     "build": "ncc build src/index.ts --license licenses.txt",
     "polish": "pnpm format && pnpm lint && pnpm build",
-    "test": "pnpm clean && pnpm build && act --container-architecture linux/amd64 -s GITHUB_TOKEN=\"$(gh auth token)\" push -j test"
+    "test": "pnpm clean && pnpm build && act --container-architecture linux/amd64 -s GITHUB_TOKEN=\"$(gh auth token)\" push -j test",
+    "prepare": "is-ci || husky install",
+    "commitlint": "commitlint"
   },
   "dependencies": {
     "@actions/core": "^1.10.1",
@@ -27,6 +29,8 @@
     "@vercel/ncc": "^0.38.1",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
+    "husky": "^9.0.11",
+    "is-ci": "^3.0.1",
     "prettier": "3.2.5",
     "semver": "^7.6.0",
     "shx": "^0.3.4",
