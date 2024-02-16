@@ -1,0 +1,19 @@
+name: Manual Test
+
+on:
+  push:
+    branches:
+      - test
+
+jobs:
+  test:
+    name: Test
+    runs-on: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: aws_credentials
+        uses: ./
+        with:
+          export: true
+          from: "auto"

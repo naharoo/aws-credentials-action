@@ -1,13 +1,21 @@
 name: 'aws-credentials-action'
-description: 'Fetch and export AWS Credentials'
-inputs: { }
+description: 'Return and export AWS Credentials'
+inputs:
+  export:
+    required: false
+    default: 'true'
+    description: 'Export AWS Credentials as environment variables'
+  from:
+    required: false
+    default: 'auto'
+    description: 'The source of the AWS Credentials. Can be "auto", "instance_metadata", "env_vars"'
 outputs:
-  access_key_id:
-    description: 'Returned AWS Access Key ID'
-  secret_access_key:
-    description: 'Returned AWS Secret Access Key'
-  session_token:
-    description: 'Returned AWS Session Token'
+  aws_access_key_id:
+    description: 'AWS Access Key ID'
+  aws_secret_access_key:
+    description: 'AWS Secret Access Key'
+  aws_session_token:
+    description: 'AWS Session Token (if available)'
 runs:
   using: 'node20'
   main: 'dist/index.js'
