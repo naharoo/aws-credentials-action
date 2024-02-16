@@ -72,9 +72,7 @@ jobs:
             await exec.exec("git", ["commit", "-m", commitMessage]);
 
             // Tag
-            await exec.exec("git", ["tag", "v" + newVersion]);
+            await exec.exec("git", ["tag", "-a", "-m", "Release v" + newVersion, "v" + newVersion]);
       
             // Push
-            await exec.exec("git", ["push", "--tags"]);
-            
-          
+            await exec.exec("git", ["push", "--follow-tags"]);
