@@ -2,7 +2,7 @@ import { AwsCredentials } from "./aws-credentials-factory";
 import { AssumeRoleCommand, STSClient } from "@aws-sdk/client-sts";
 
 type AssumeRoleProps = AwsCredentials & {
-  region?: string;
+  region: string;
   roleArn: string;
   sessionName: string;
   durationSeconds?: number;

@@ -26,8 +26,18 @@ const configSchema = z
       return true;
     },
     {
-      // Custom error message
       message: "accessKeyId and secretAccessKey are required when source is input",
+    },
+  )
+  .refine(
+    data => {
+      // If assumeRoleArn is provided, then region must be provided
+      if (data.assumeRoleArn) {
+        return data.region && data.region.length > 0;
+      }
+    },
+    {
+      message: "region is required when assumeRoleArn is provided",
     },
   );
 

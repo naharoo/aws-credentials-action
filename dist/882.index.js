@@ -110,8 +110,15 @@ const configSchema = zod__WEBPACK_IMPORTED_MODULE_1__.z.object({
     // If source is not 'input', then no additional validation is needed
     return true;
 }, {
-    // Custom error message
     message: "accessKeyId and secretAccessKey are required when source is input",
+})
+    .refine(data => {
+    // If assumeRoleArn is provided, then region must be provided
+    if (data.assumeRoleArn) {
+        return data.region && data.region.length > 0;
+    }
+}, {
+    message: "region is required when assumeRoleArn is provided",
 });
 function getActionInputValue(name) {
     const inputValue = (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(name);

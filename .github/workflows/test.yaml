@@ -17,6 +17,8 @@ jobs:
         with:
           export: true
           source: "input"
-          aws_access_key_id: "qwe"
-          aws_secret_access_key: "asd"
-          aws_session_token: "zxc"
+          accessKeyId: "qwe"
+          secretAccessKey: "asd"
+          sessionToken: "zxc"
+          assumeRoleArn: asd
+          region: "us-east-1"

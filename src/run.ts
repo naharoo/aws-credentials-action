@@ -7,7 +7,7 @@ const credentials = await getAwsCredentials();
 
 if (config.assumeRoleArn) {
   const assumedCredentials = await assumeRole({
-    region: config.region,
+    region: config.region!,
     accessKeyId: credentials.accessKeyId,
     secretAccessKey: credentials.secretAccessKey,
     sessionToken: credentials.sessionToken,
