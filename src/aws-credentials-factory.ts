@@ -1,15 +1,11 @@
 import config from "./config";
+import { isNotBlank } from "./utils";
 import { fromEnv, fromInstanceMetadata, fromNodeProviderChain } from "@aws-sdk/credential-providers";
 
 export type AwsCredentials = { accessKeyId: string; secretAccessKey: string; sessionToken?: string };
 
 function areAwsCredentialsProvidedAsInput(): boolean {
-  return (
-    !!config.accessKeyId &&
-    config.accessKeyId.length > 0 &&
-    !!config.secretAccessKey &&
-    config.secretAccessKey.length > 0
-  );
+  return isNotBlank(config.accessKeyId) && isNotBlank(config.secretAccessKey);
 }
 
 function getAwsCredentialsFromInput() {

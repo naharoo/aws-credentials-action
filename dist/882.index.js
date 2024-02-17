@@ -42,15 +42,14 @@ async function assumeRole({ region, accessKeyId, secretAccessKey, sessionToken, 
 /* harmony export */   "L": () => (/* binding */ getAwsCredentials)
 /* harmony export */ });
 /* harmony import */ var _config__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9598);
-/* harmony import */ var _aws_sdk_credential_providers__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6187);
-/* harmony import */ var _aws_sdk_credential_providers__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_aws_sdk_credential_providers__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(442);
+/* harmony import */ var _aws_sdk_credential_providers__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6187);
+/* harmony import */ var _aws_sdk_credential_providers__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_aws_sdk_credential_providers__WEBPACK_IMPORTED_MODULE_2__);
+
 
 
 function areAwsCredentialsProvidedAsInput() {
-    return (!!_config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].accessKeyId */ .Z.accessKeyId &&
-        _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].accessKeyId.length */ .Z.accessKeyId.length > 0 &&
-        !!_config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].secretAccessKey */ .Z.secretAccessKey &&
-        _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].secretAccessKey.length */ .Z.secretAccessKey.length > 0);
+    return (0,_utils__WEBPACK_IMPORTED_MODULE_1__/* .isNotBlank */ .S)(_config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].accessKeyId */ .Z.accessKeyId) && (0,_utils__WEBPACK_IMPORTED_MODULE_1__/* .isNotBlank */ .S)(_config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].secretAccessKey */ .Z.secretAccessKey);
 }
 function getAwsCredentialsFromInput() {
     return {
@@ -65,11 +64,11 @@ async function getAwsCredentials() {
             if (areAwsCredentialsProvidedAsInput()) {
                 return getAwsCredentialsFromInput();
             }
-            return await (0,_aws_sdk_credential_providers__WEBPACK_IMPORTED_MODULE_1__.fromNodeProviderChain)({ profile: _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].profile */ .Z.profile })();
+            return await (0,_aws_sdk_credential_providers__WEBPACK_IMPORTED_MODULE_2__.fromNodeProviderChain)({ profile: _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].profile */ .Z.profile })();
         case "env_vars":
-            return await (0,_aws_sdk_credential_providers__WEBPACK_IMPORTED_MODULE_1__.fromEnv)()();
+            return await (0,_aws_sdk_credential_providers__WEBPACK_IMPORTED_MODULE_2__.fromEnv)()();
         case "instance_metadata":
-            return await (0,_aws_sdk_credential_providers__WEBPACK_IMPORTED_MODULE_1__.fromInstanceMetadata)()();
+            return await (0,_aws_sdk_credential_providers__WEBPACK_IMPORTED_MODULE_2__.fromInstanceMetadata)()();
         case "input":
             return getAwsCredentialsFromInput();
     }
@@ -84,28 +83,30 @@ async function getAwsCredentials() {
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "Z": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(442);
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9093);
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_actions_core__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var zod__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8047);
-/* harmony import */ var zod_validation_error__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(8249);
+/* harmony import */ var zod_validation_error__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(8249);
+
 
 
 
 const configSchema = zod__WEBPACK_IMPORTED_MODULE_1__.z.object({
     export: zod__WEBPACK_IMPORTED_MODULE_1__.z["enum"](["true", "false"]).transform(value => value === "true"),
     source: zod__WEBPACK_IMPORTED_MODULE_1__.z["enum"](["auto", "instance_metadata", "env_vars", "input"]),
-    profile: zod__WEBPACK_IMPORTED_MODULE_1__.z.ostring().transform(value => (value?.length ? value : undefined)),
-    region: zod__WEBPACK_IMPORTED_MODULE_1__.z.ostring().transform(value => (value?.length ? value : undefined)),
-    accessKeyId: zod__WEBPACK_IMPORTED_MODULE_1__.z.ostring().transform(value => (value?.length ? value : undefined)),
-    secretAccessKey: zod__WEBPACK_IMPORTED_MODULE_1__.z.ostring().transform(value => (value?.length ? value : undefined)),
-    sessionToken: zod__WEBPACK_IMPORTED_MODULE_1__.z.ostring().transform(value => (value?.length ? value : undefined)),
-    assumeRoleArn: zod__WEBPACK_IMPORTED_MODULE_1__.z.ostring().transform(value => (value?.length ? value : undefined)),
+    profile: zod__WEBPACK_IMPORTED_MODULE_1__.z.ostring().transform(value => ((0,_utils__WEBPACK_IMPORTED_MODULE_2__/* .isNotBlank */ .S)(value) ? value : undefined)),
+    region: zod__WEBPACK_IMPORTED_MODULE_1__.z.ostring().transform(value => ((0,_utils__WEBPACK_IMPORTED_MODULE_2__/* .isNotBlank */ .S)(value) ? value : undefined)),
+    accessKeyId: zod__WEBPACK_IMPORTED_MODULE_1__.z.ostring().transform(value => ((0,_utils__WEBPACK_IMPORTED_MODULE_2__/* .isNotBlank */ .S)(value) ? value : undefined)),
+    secretAccessKey: zod__WEBPACK_IMPORTED_MODULE_1__.z.ostring().transform(value => ((0,_utils__WEBPACK_IMPORTED_MODULE_2__/* .isNotBlank */ .S)(value) ? value : undefined)),
+    sessionToken: zod__WEBPACK_IMPORTED_MODULE_1__.z.ostring().transform(value => ((0,_utils__WEBPACK_IMPORTED_MODULE_2__/* .isNotBlank */ .S)(value) ? value : undefined)),
+    assumeRoleArn: zod__WEBPACK_IMPORTED_MODULE_1__.z.ostring().transform(value => ((0,_utils__WEBPACK_IMPORTED_MODULE_2__/* .isNotBlank */ .S)(value) ? value : undefined)),
     assumeRoleDurationSeconds: zod__WEBPACK_IMPORTED_MODULE_1__.z.coerce.number().optional(),
 })
     .refine(data => {
     // If source is 'input', then accessKeyId and secretAccessKey must be provided
     if (data.source === "input") {
-        return (data.accessKeyId && data.accessKeyId.length > 0 && data.secretAccessKey && data.secretAccessKey.length > 0);
+        return (0,_utils__WEBPACK_IMPORTED_MODULE_2__/* .isNotBlank */ .S)(data.accessKeyId) && (0,_utils__WEBPACK_IMPORTED_MODULE_2__/* .isNotBlank */ .S)(data.secretAccessKey);
     }
     // If source is not 'input', then no additional validation is needed
     return true;
@@ -114,9 +115,11 @@ const configSchema = zod__WEBPACK_IMPORTED_MODULE_1__.z.object({
 })
     .refine(data => {
     // If assumeRoleArn is provided, then region must be provided
-    if (data.assumeRoleArn) {
-        return data.region && data.region.length > 0;
+    if ((0,_utils__WEBPACK_IMPORTED_MODULE_2__/* .isNotBlank */ .S)(data.assumeRoleArn)) {
+        return (0,_utils__WEBPACK_IMPORTED_MODULE_2__/* .isNotBlank */ .S)(data.region);
     }
+    // If assumeRoleArn is not provided, then no additional validation is needed
+    return true;
 }, {
     message: "region is required when assumeRoleArn is provided",
 });
@@ -143,7 +146,7 @@ try {
 }
 catch (err) {
     if (err instanceof zod__WEBPACK_IMPORTED_MODULE_1__.z.ZodError) {
-        throw (0,zod_validation_error__WEBPACK_IMPORTED_MODULE_2__/* .fromZodError */ .CC)(err);
+        throw (0,zod_validation_error__WEBPACK_IMPORTED_MODULE_3__/* .fromZodError */ .CC)(err);
     }
     throw err;
 }
@@ -215,6 +218,19 @@ else {
 
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } }, 1);
+
+/***/ }),
+
+/***/ 442:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "S": () => (/* binding */ isNotBlank)
+/* harmony export */ });
+function isNotBlank(value) {
+    return !!value && value.trim().length > 0;
+}
+
 
 /***/ })
 

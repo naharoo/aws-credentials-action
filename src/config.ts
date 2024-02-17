@@ -1,3 +1,4 @@
+import { isNotBlank } from "./utils";
 import { getInput } from "@actions/core";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
@@ -6,21 +7,19 @@ const configSchema = z
   .object({
     export: z.enum(["true", "false"]).transform(value => value === "true"),
     source: z.enum(["auto", "instance_metadata", "env_vars", "input"]),
-    profile: z.ostring().transform(value => (value?.length ? value : undefined)),
-    region: z.ostring().transform(value => (value?.length ? value : undefined)),
-    accessKeyId: z.ostring().transform(value => (value?.length ? value : undefined)),
-    secretAccessKey: z.ostring().transform(value => (value?.length ? value : undefined)),
-    sessionToken: z.ostring().transform(value => (value?.length ? value : undefined)),
-    assumeRoleArn: z.ostring().transform(value => (value?.length ? value : undefined)),
+    profile: z.ostring().transform(value => (isNotBlank(value) ? value : undefined)),
+    region: z.ostring().transform(value => (isNotBlank(value) ? value : undefined)),
+    accessKeyId: z.ostring().transform(value => (isNotBlank(value) ? value : undefined)),
+    secretAccessKey: z.ostring().transform(value => (isNotBlank(value) ? value : undefined)),
+    sessionToken: z.ostring().transform(value => (isNotBlank(value) ? value : undefined)),
+    assumeRoleArn: z.ostring().transform(value => (isNotBlank(value) ? value : undefined)),
     assumeRoleDurationSeconds: z.coerce.number().optional(),
   })
   .refine(
     data => {
       // If source is 'input', then accessKeyId and secretAccessKey must be provided
       if (data.source === "input") {
-        return (
-          data.accessKeyId && data.accessKeyId.length > 0 && data.secretAccessKey && data.secretAccessKey.length > 0
-        );
+        return isNotBlank(data.accessKeyId) && isNotBlank(data.secretAccessKey);
       }
       // If source is not 'input', then no additional validation is needed
       return true;
@@ -32,9 +31,11 @@ const configSchema = z
   .refine(
     data => {
       // If assumeRoleArn is provided, then region must be provided
-      if (data.assumeRoleArn) {
-        return data.region && data.region.length > 0;
+      if (isNotBlank(data.assumeRoleArn)) {
+        return isNotBlank(data.region);
       }
+      // If assumeRoleArn is not provided, then no additional validation is needed
+      return true;
     },
     {
       message: "region is required when assumeRoleArn is provided",
