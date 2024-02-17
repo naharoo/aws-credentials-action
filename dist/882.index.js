@@ -15,13 +15,19 @@ exports.modules = {
 
 
 async function getAwsCredentials() {
-    switch (_config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].from */ .Z.from) {
+    switch (_config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].source */ .Z.source) {
         case "auto":
-            return await (0,_aws_sdk_credential_providers__WEBPACK_IMPORTED_MODULE_1__.fromNodeProviderChain)()();
+            return await (0,_aws_sdk_credential_providers__WEBPACK_IMPORTED_MODULE_1__.fromNodeProviderChain)({ profile: _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].profile */ .Z.profile })();
         case "env_vars":
             return await (0,_aws_sdk_credential_providers__WEBPACK_IMPORTED_MODULE_1__.fromEnv)()();
         case "instance_metadata":
             return await (0,_aws_sdk_credential_providers__WEBPACK_IMPORTED_MODULE_1__.fromInstanceMetadata)()();
+        case "input":
+            return {
+                accessKeyId: _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].aws_access_key_id */ .Z.aws_access_key_id,
+                secretAccessKey: _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].aws_secret_access_key */ .Z.aws_secret_access_key,
+                sessionToken: _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].aws_session_token */ .Z.aws_session_token,
+            };
     }
 }
 
@@ -43,12 +49,40 @@ async function getAwsCredentials() {
 
 const configSchema = zod__WEBPACK_IMPORTED_MODULE_1__.z.object({
     export: zod__WEBPACK_IMPORTED_MODULE_1__.z["enum"](["true", "false"]).transform(value => value === "true"),
-    from: zod__WEBPACK_IMPORTED_MODULE_1__.z["enum"](["auto", "instance_metadata", "env_vars"]),
+    source: zod__WEBPACK_IMPORTED_MODULE_1__.z["enum"](["auto", "instance_metadata", "env_vars", "input"]),
+    profile: zod__WEBPACK_IMPORTED_MODULE_1__.z.string()
+        .optional()
+        .transform(value => value ?? undefined),
+    aws_access_key_id: zod__WEBPACK_IMPORTED_MODULE_1__.z.string().optional(),
+    aws_secret_access_key: zod__WEBPACK_IMPORTED_MODULE_1__.z.string().optional(),
+    aws_session_token: zod__WEBPACK_IMPORTED_MODULE_1__.z.string().optional(),
+})
+    .refine(data => {
+    // If source is 'input', then aws_access_key_id and aws_secret_access_key must be provided
+    if (data.source === "input") {
+        return (data.aws_access_key_id &&
+            data.aws_access_key_id.length > 0 &&
+            data.aws_secret_access_key &&
+            data.aws_secret_access_key.length > 0);
+    }
+    // If source is not 'input', then no additional validation is needed
+    return true;
+}, {
+    // Custom error message
+    message: "aws_access_key_id and aws_secret_access_key are required when source is input",
 });
+function getActionInputValue(name) {
+    const inputValue = (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(name);
+    return inputValue.length ? inputValue : undefined;
+}
 function parseConfig() {
     return configSchema.parse({
-        export: (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)("export", { required: true }),
-        from: (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)("from", { required: true }),
+        export: getActionInputValue("export"),
+        source: getActionInputValue("source"),
+        profile: getActionInputValue("profile"),
+        aws_access_key_id: getActionInputValue("aws_access_key_id"),
+        aws_secret_access_key: getActionInputValue("aws_secret_access_key"),
+        aws_session_token: getActionInputValue("aws_session_token"),
     });
 }
 let config;

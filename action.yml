@@ -5,10 +5,22 @@ inputs:
     required: false
     default: 'true'
     description: 'Export AWS Credentials as environment variables'
-  from:
+  source:
     required: false
     default: 'auto'
-    description: 'The source of the AWS Credentials. Can be "auto", "instance_metadata", "env_vars"'
+    description: 'The source of the AWS Credentials. Can be "auto", "instance_metadata", "env_vars", "input'
+  profile:
+    required: false
+    description: 'AWS Profile to use'
+  aws_access_key_id:
+    required: false
+    description: 'AWS Access Key ID (when source is "input")'
+  aws_secret_access_key:
+    required: false
+    description: 'AWS Secret Access Key (when source is "input")'
+  aws_session_token:
+    required: false
+    description: 'AWS Session Token (if available, when source is "input")'
 outputs:
   aws_access_key_id:
     description: 'AWS Access Key ID'

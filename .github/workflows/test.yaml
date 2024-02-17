@@ -8,7 +8,7 @@ on:
 jobs:
   test:
     name: Test
-    runs-on: [ubuntu-latest]
+    runs-on: [ ubuntu-latest ]
     steps:
       - uses: actions/checkout@v4
 
@@ -16,4 +16,7 @@ jobs:
         uses: ./
         with:
           export: true
-          from: "auto"
+          source: "input"
+          aws_access_key_id: "qwe"
+          aws_secret_access_key: "asd"
+          aws_session_token: "zxc"
