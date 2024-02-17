@@ -14,20 +14,32 @@ exports.modules = {
 /* harmony import */ var _aws_sdk_credential_providers__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_aws_sdk_credential_providers__WEBPACK_IMPORTED_MODULE_1__);
 
 
+function areAwsCredentialsProvidedAsInput() {
+    return (!!_config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].aws_access_key_id */ .Z.aws_access_key_id &&
+        _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].aws_access_key_id.length */ .Z.aws_access_key_id.length > 0 &&
+        !!_config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].aws_secret_access_key */ .Z.aws_secret_access_key &&
+        _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].aws_secret_access_key.length */ .Z.aws_secret_access_key.length > 0);
+}
+function getAwsCredentialsFromInput() {
+    return {
+        accessKeyId: _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].aws_access_key_id */ .Z.aws_access_key_id,
+        secretAccessKey: _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].aws_secret_access_key */ .Z.aws_secret_access_key,
+        sessionToken: _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].aws_session_token */ .Z.aws_session_token,
+    };
+}
 async function getAwsCredentials() {
     switch (_config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].source */ .Z.source) {
         case "auto":
+            if (areAwsCredentialsProvidedAsInput()) {
+                return getAwsCredentialsFromInput();
+            }
             return await (0,_aws_sdk_credential_providers__WEBPACK_IMPORTED_MODULE_1__.fromNodeProviderChain)({ profile: _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].profile */ .Z.profile })();
         case "env_vars":
             return await (0,_aws_sdk_credential_providers__WEBPACK_IMPORTED_MODULE_1__.fromEnv)()();
         case "instance_metadata":
             return await (0,_aws_sdk_credential_providers__WEBPACK_IMPORTED_MODULE_1__.fromInstanceMetadata)()();
         case "input":
-            return {
-                accessKeyId: _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].aws_access_key_id */ .Z.aws_access_key_id,
-                secretAccessKey: _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].aws_secret_access_key */ .Z.aws_secret_access_key,
-                sessionToken: _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].aws_session_token */ .Z.aws_session_token,
-            };
+            return getAwsCredentialsFromInput();
     }
 }
 
