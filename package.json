@@ -1,6 +1,6 @@
 {
   "name": "aws-credentials-action",
-  "version": "1.5",
+  "version": "1.6",
   "main": "dist/index.js",
   "scripts": {
     "format": "prettier --write src/**",
