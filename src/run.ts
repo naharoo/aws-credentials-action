@@ -12,7 +12,7 @@ if (config.assumeRoleArn) {
     secretAccessKey: credentials.secretAccessKey,
     sessionToken: credentials.sessionToken,
     roleArn: config.assumeRoleArn,
-    sessionName: `aws-credentials-action-${new Date().toISOString()}`,
+    sessionName: `aws-credentials-action-${new Date().getTime()}`,
     durationSeconds: config.assumeRoleDurationSeconds,
   });
   setOutputAndExportVariable(assumedCredentials);

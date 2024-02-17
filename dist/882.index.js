@@ -207,7 +207,7 @@ if (_config__WEBPACK_IMPORTED_MODULE_1__/* ["default"].assumeRoleArn */ .Z.assum
         secretAccessKey: credentials.secretAccessKey,
         sessionToken: credentials.sessionToken,
         roleArn: _config__WEBPACK_IMPORTED_MODULE_1__/* ["default"].assumeRoleArn */ .Z.assumeRoleArn,
-        sessionName: `aws-credentials-action-${new Date().toISOString()}`,
+        sessionName: `aws-credentials-action-${new Date().getTime()}`,
         durationSeconds: _config__WEBPACK_IMPORTED_MODULE_1__/* ["default"].assumeRoleDurationSeconds */ .Z.assumeRoleDurationSeconds,
     });
     (0,_output__WEBPACK_IMPORTED_MODULE_2__/* .setOutputAndExportVariable */ .I)(assumedCredentials);
