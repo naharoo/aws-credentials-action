@@ -1,5 +1,5 @@
 name: 'aws-credentials-action'
-description: 'Return and export AWS Credentials'
+description: 'Return and export AWS Credentials from various sources'
 inputs:
   export:
     required: false
@@ -12,21 +12,30 @@ inputs:
   profile:
     required: false
     description: 'AWS Profile to use'
-  aws_access_key_id:
+  region:
+    required: false
+    description: 'AWS Region to use'
+  accessKeyId:
     required: false
     description: 'AWS Access Key ID (when source is "input")'
-  aws_secret_access_key:
+  secretAccessKey:
     required: false
     description: 'AWS Secret Access Key (when source is "input")'
-  aws_session_token:
+  sessionToken:
     required: false
     description: 'AWS Session Token (if available, when source is "input")'
+  assumeRoleArn:
+    required: false
+    description: 'The ARN of the role to assume'
+  assumeRoleDurationSeconds:
+    required: false
+    description: 'The duration, in seconds, of the role assumption'
 outputs:
-  aws_access_key_id:
+  accessKeyId:
     description: 'AWS Access Key ID'
-  aws_secret_access_key:
+  secretAccessKey:
     description: 'AWS Secret Access Key'
-  aws_session_token:
+  sessionToken:
     description: 'AWS Session Token (if available)'
 runs:
   using: 'node20'

@@ -3,6 +3,38 @@ exports.id = 882;
 exports.ids = [882];
 exports.modules = {
 
+/***/ 1905:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "t": () => (/* binding */ assumeRole)
+/* harmony export */ });
+/* harmony import */ var _aws_sdk_client_sts__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9507);
+/* harmony import */ var _aws_sdk_client_sts__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_aws_sdk_client_sts__WEBPACK_IMPORTED_MODULE_0__);
+
+async function assumeRole({ region, accessKeyId, secretAccessKey, sessionToken, roleArn, sessionName, durationSeconds, }) {
+    const stsClient = new _aws_sdk_client_sts__WEBPACK_IMPORTED_MODULE_0__.STSClient({
+        region,
+        credentials: { accessKeyId, secretAccessKey, sessionToken },
+    });
+    const { Credentials } = await stsClient.send(new _aws_sdk_client_sts__WEBPACK_IMPORTED_MODULE_0__.AssumeRoleCommand({
+        RoleArn: roleArn,
+        RoleSessionName: sessionName,
+        DurationSeconds: durationSeconds,
+    }));
+    if (!Credentials) {
+        throw new Error("Failed to assume role");
+    }
+    return {
+        accessKeyId: Credentials.AccessKeyId,
+        secretAccessKey: Credentials.SecretAccessKey,
+        sessionToken: Credentials?.SessionToken,
+    };
+}
+
+
+/***/ }),
+
 /***/ 6607:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
@@ -15,16 +47,16 @@ exports.modules = {
 
 
 function areAwsCredentialsProvidedAsInput() {
-    return (!!_config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].aws_access_key_id */ .Z.aws_access_key_id &&
-        _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].aws_access_key_id.length */ .Z.aws_access_key_id.length > 0 &&
-        !!_config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].aws_secret_access_key */ .Z.aws_secret_access_key &&
-        _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].aws_secret_access_key.length */ .Z.aws_secret_access_key.length > 0);
+    return (!!_config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].accessKeyId */ .Z.accessKeyId &&
+        _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].accessKeyId.length */ .Z.accessKeyId.length > 0 &&
+        !!_config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].secretAccessKey */ .Z.secretAccessKey &&
+        _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].secretAccessKey.length */ .Z.secretAccessKey.length > 0);
 }
 function getAwsCredentialsFromInput() {
     return {
-        accessKeyId: _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].aws_access_key_id */ .Z.aws_access_key_id,
-        secretAccessKey: _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].aws_secret_access_key */ .Z.aws_secret_access_key,
-        sessionToken: _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].aws_session_token */ .Z.aws_session_token,
+        accessKeyId: _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].accessKeyId */ .Z.accessKeyId,
+        secretAccessKey: _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].secretAccessKey */ .Z.secretAccessKey,
+        sessionToken: _config__WEBPACK_IMPORTED_MODULE_0__/* ["default"].sessionToken */ .Z.sessionToken,
     };
 }
 async function getAwsCredentials() {
@@ -62,26 +94,24 @@ async function getAwsCredentials() {
 const configSchema = zod__WEBPACK_IMPORTED_MODULE_1__.z.object({
     export: zod__WEBPACK_IMPORTED_MODULE_1__.z["enum"](["true", "false"]).transform(value => value === "true"),
     source: zod__WEBPACK_IMPORTED_MODULE_1__.z["enum"](["auto", "instance_metadata", "env_vars", "input"]),
-    profile: zod__WEBPACK_IMPORTED_MODULE_1__.z.string()
-        .optional()
-        .transform(value => value ?? undefined),
-    aws_access_key_id: zod__WEBPACK_IMPORTED_MODULE_1__.z.string().optional(),
-    aws_secret_access_key: zod__WEBPACK_IMPORTED_MODULE_1__.z.string().optional(),
-    aws_session_token: zod__WEBPACK_IMPORTED_MODULE_1__.z.string().optional(),
+    profile: zod__WEBPACK_IMPORTED_MODULE_1__.z.ostring().transform(value => (value?.length ? value : undefined)),
+    region: zod__WEBPACK_IMPORTED_MODULE_1__.z.ostring().transform(value => (value?.length ? value : undefined)),
+    accessKeyId: zod__WEBPACK_IMPORTED_MODULE_1__.z.ostring().transform(value => (value?.length ? value : undefined)),
+    secretAccessKey: zod__WEBPACK_IMPORTED_MODULE_1__.z.ostring().transform(value => (value?.length ? value : undefined)),
+    sessionToken: zod__WEBPACK_IMPORTED_MODULE_1__.z.ostring().transform(value => (value?.length ? value : undefined)),
+    assumeRoleArn: zod__WEBPACK_IMPORTED_MODULE_1__.z.ostring().transform(value => (value?.length ? value : undefined)),
+    assumeRoleDurationSeconds: zod__WEBPACK_IMPORTED_MODULE_1__.z.coerce.number().optional(),
 })
     .refine(data => {
-    // If source is 'input', then aws_access_key_id and aws_secret_access_key must be provided
+    // If source is 'input', then accessKeyId and secretAccessKey must be provided
     if (data.source === "input") {
-        return (data.aws_access_key_id &&
-            data.aws_access_key_id.length > 0 &&
-            data.aws_secret_access_key &&
-            data.aws_secret_access_key.length > 0);
+        return (data.accessKeyId && data.accessKeyId.length > 0 && data.secretAccessKey && data.secretAccessKey.length > 0);
     }
     // If source is not 'input', then no additional validation is needed
     return true;
 }, {
     // Custom error message
-    message: "aws_access_key_id and aws_secret_access_key are required when source is input",
+    message: "accessKeyId and secretAccessKey are required when source is input",
 });
 function getActionInputValue(name) {
     const inputValue = (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(name);
@@ -92,9 +122,12 @@ function parseConfig() {
         export: getActionInputValue("export"),
         source: getActionInputValue("source"),
         profile: getActionInputValue("profile"),
-        aws_access_key_id: getActionInputValue("aws_access_key_id"),
-        aws_secret_access_key: getActionInputValue("aws_secret_access_key"),
-        aws_session_token: getActionInputValue("aws_session_token"),
+        region: getActionInputValue("region"),
+        accessKeyId: getActionInputValue("accessKeyId"),
+        secretAccessKey: getActionInputValue("secretAccessKey"),
+        sessionToken: getActionInputValue("sessionToken"),
+        assumeRoleArn: getActionInputValue("assumeRoleArn"),
+        assumeRoleDurationSeconds: getActionInputValue("assumeRoleDurationSeconds"),
     });
 }
 let config;
@@ -112,32 +145,65 @@ catch (err) {
 
 /***/ }),
 
+/***/ 1720:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "I": () => (/* binding */ setOutputAndExportVariable)
+/* harmony export */ });
+/* harmony import */ var _config__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9598);
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(9093);
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_actions_core__WEBPACK_IMPORTED_MODULE_1__);
+
+
+function setOutputAndExportVariable({ accessKeyId, secretAccessKey, sessionToken, }) {
+    (0,_actions_core__WEBPACK_IMPORTED_MODULE_1__.setSecret)(accessKeyId);
+    (0,_actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput)("accessKeyId", accessKeyId);
+    if (_config__WEBPACK_IMPORTED_MODULE_0__/* ["default"]["export"] */ .Z["export"])
+        (0,_actions_core__WEBPACK_IMPORTED_MODULE_1__.exportVariable)("AWS_ACCESS_KEY_ID", accessKeyId);
+    (0,_actions_core__WEBPACK_IMPORTED_MODULE_1__.setSecret)(secretAccessKey);
+    (0,_actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput)("secretAccessKey", secretAccessKey);
+    if (_config__WEBPACK_IMPORTED_MODULE_0__/* ["default"]["export"] */ .Z["export"])
+        (0,_actions_core__WEBPACK_IMPORTED_MODULE_1__.exportVariable)("AWS_SECRET_ACCESS_KEY", secretAccessKey);
+    if (sessionToken) {
+        (0,_actions_core__WEBPACK_IMPORTED_MODULE_1__.setSecret)(sessionToken);
+        (0,_actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput)("sessionToken", sessionToken);
+        if (_config__WEBPACK_IMPORTED_MODULE_0__/* ["default"]["export"] */ .Z["export"])
+            (0,_actions_core__WEBPACK_IMPORTED_MODULE_1__.exportVariable)("AWS_SESSION_TOKEN", sessionToken);
+    }
+}
+
+
+/***/ }),
+
 /***/ 882:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _assume_role__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(1905);
 /* harmony import */ var _aws_credentials_factory__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6607);
 /* harmony import */ var _config__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(9598);
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9093);
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_actions_core__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _output__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1720);
 
 
 
-const { accessKeyId, secretAccessKey, sessionToken } = await (0,_aws_credentials_factory__WEBPACK_IMPORTED_MODULE_0__/* .getAwsCredentials */ .L)();
-(0,_actions_core__WEBPACK_IMPORTED_MODULE_2__.setSecret)(accessKeyId);
-(0,_actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput)("aws_access_key_id", accessKeyId);
-if (_config__WEBPACK_IMPORTED_MODULE_1__/* ["default"]["export"] */ .Z["export"])
-    (0,_actions_core__WEBPACK_IMPORTED_MODULE_2__.exportVariable)("AWS_ACCESS_KEY_ID", accessKeyId);
-(0,_actions_core__WEBPACK_IMPORTED_MODULE_2__.setSecret)(secretAccessKey);
-(0,_actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput)("aws_secret_access_key", secretAccessKey);
-if (_config__WEBPACK_IMPORTED_MODULE_1__/* ["default"]["export"] */ .Z["export"])
-    (0,_actions_core__WEBPACK_IMPORTED_MODULE_2__.exportVariable)("AWS_SECRET_ACCESS_KEY", secretAccessKey);
-if (sessionToken) {
-    (0,_actions_core__WEBPACK_IMPORTED_MODULE_2__.setSecret)(sessionToken);
-    (0,_actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput)("aws_session_token", sessionToken);
-    if (_config__WEBPACK_IMPORTED_MODULE_1__/* ["default"]["export"] */ .Z["export"])
-        (0,_actions_core__WEBPACK_IMPORTED_MODULE_2__.exportVariable)("AWS_SESSION_TOKEN", sessionToken);
+
+const credentials = await (0,_aws_credentials_factory__WEBPACK_IMPORTED_MODULE_0__/* .getAwsCredentials */ .L)();
+if (_config__WEBPACK_IMPORTED_MODULE_1__/* ["default"].assumeRoleArn */ .Z.assumeRoleArn) {
+    const assumedCredentials = await (0,_assume_role__WEBPACK_IMPORTED_MODULE_3__/* .assumeRole */ .t)({
+        region: _config__WEBPACK_IMPORTED_MODULE_1__/* ["default"].region */ .Z.region,
+        accessKeyId: credentials.accessKeyId,
+        secretAccessKey: credentials.secretAccessKey,
+        sessionToken: credentials.sessionToken,
+        roleArn: _config__WEBPACK_IMPORTED_MODULE_1__/* ["default"].assumeRoleArn */ .Z.assumeRoleArn,
+        sessionName: `aws-credentials-action-${new Date().toISOString()}`,
+        durationSeconds: _config__WEBPACK_IMPORTED_MODULE_1__/* ["default"].assumeRoleDurationSeconds */ .Z.assumeRoleDurationSeconds,
+    });
+    (0,_output__WEBPACK_IMPORTED_MODULE_2__/* .setOutputAndExportVariable */ .I)(assumedCredentials);
+}
+else {
+    (0,_output__WEBPACK_IMPORTED_MODULE_2__/* .setOutputAndExportVariable */ .I)(credentials);
 }
 
 __webpack_async_result__();

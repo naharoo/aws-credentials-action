@@ -6,23 +6,20 @@ const configSchema = z
   .object({
     export: z.enum(["true", "false"]).transform(value => value === "true"),
     source: z.enum(["auto", "instance_metadata", "env_vars", "input"]),
-    profile: z
-      .string()
-      .optional()
-      .transform(value => value ?? undefined),
-    aws_access_key_id: z.string().optional(),
-    aws_secret_access_key: z.string().optional(),
-    aws_session_token: z.string().optional(),
+    profile: z.ostring().transform(value => (value?.length ? value : undefined)),
+    region: z.ostring().transform(value => (value?.length ? value : undefined)),
+    accessKeyId: z.ostring().transform(value => (value?.length ? value : undefined)),
+    secretAccessKey: z.ostring().transform(value => (value?.length ? value : undefined)),
+    sessionToken: z.ostring().transform(value => (value?.length ? value : undefined)),
+    assumeRoleArn: z.ostring().transform(value => (value?.length ? value : undefined)),
+    assumeRoleDurationSeconds: z.coerce.number().optional(),
   })
   .refine(
     data => {
-      // If source is 'input', then aws_access_key_id and aws_secret_access_key must be provided
+      // If source is 'input', then accessKeyId and secretAccessKey must be provided
       if (data.source === "input") {
         return (
-          data.aws_access_key_id &&
-          data.aws_access_key_id.length > 0 &&
-          data.aws_secret_access_key &&
-          data.aws_secret_access_key.length > 0
+          data.accessKeyId && data.accessKeyId.length > 0 && data.secretAccessKey && data.secretAccessKey.length > 0
         );
       }
       // If source is not 'input', then no additional validation is needed
@@ -30,7 +27,7 @@ const configSchema = z
     },
     {
       // Custom error message
-      message: "aws_access_key_id and aws_secret_access_key are required when source is input",
+      message: "accessKeyId and secretAccessKey are required when source is input",
     },
   );
 
@@ -44,9 +41,12 @@ function parseConfig() {
     export: getActionInputValue("export"),
     source: getActionInputValue("source"),
     profile: getActionInputValue("profile"),
-    aws_access_key_id: getActionInputValue("aws_access_key_id"),
-    aws_secret_access_key: getActionInputValue("aws_secret_access_key"),
-    aws_session_token: getActionInputValue("aws_session_token"),
+    region: getActionInputValue("region"),
+    accessKeyId: getActionInputValue("accessKeyId"),
+    secretAccessKey: getActionInputValue("secretAccessKey"),
+    sessionToken: getActionInputValue("sessionToken"),
+    assumeRoleArn: getActionInputValue("assumeRoleArn"),
+    assumeRoleDurationSeconds: getActionInputValue("assumeRoleDurationSeconds"),
   });
 }
 

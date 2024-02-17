@@ -1,22 +1,22 @@
 import config from "./config";
 import { fromEnv, fromInstanceMetadata, fromNodeProviderChain } from "@aws-sdk/credential-providers";
 
-type AwsCredentials = { accessKeyId: string; secretAccessKey: string; sessionToken?: string };
+export type AwsCredentials = { accessKeyId: string; secretAccessKey: string; sessionToken?: string };
 
 function areAwsCredentialsProvidedAsInput(): boolean {
   return (
-    !!config.aws_access_key_id &&
-    config.aws_access_key_id.length > 0 &&
-    !!config.aws_secret_access_key &&
-    config.aws_secret_access_key.length > 0
+    !!config.accessKeyId &&
+    config.accessKeyId.length > 0 &&
+    !!config.secretAccessKey &&
+    config.secretAccessKey.length > 0
   );
 }
 
 function getAwsCredentialsFromInput() {
   return {
-    accessKeyId: config.aws_access_key_id!,
-    secretAccessKey: config.aws_secret_access_key!,
-    sessionToken: config.aws_session_token,
+    accessKeyId: config.accessKeyId!,
+    secretAccessKey: config.secretAccessKey!,
+    sessionToken: config.sessionToken,
   };
 }
 
